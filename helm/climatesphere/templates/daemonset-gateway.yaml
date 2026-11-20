@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Release.Name }}-gateway
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/component: edge-gateway
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/component: edge-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/component: edge-gateway
+    spec:
+      hostNetwork: false
+      containers:
+        - name: edge-gateway
+          image: "{{ .Values.image.gateway.repository }}:{{ .Values.image.gateway.tag }}"
+          imagePullPolicy: {{ .Values.image.gateway.pullPolicy }}
+          ports:
+            - containerPort: 8089
+              name: gateway-http
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-config
+          env:
+            - name: NODE_ENV
+              value: "{{ .Values.env.nodeEnv }}"
+            - name: EDGE_PORT
+              value: "8089"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: jwt-secret
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: db-password
+            - name: DATABASE_URL
+              value: "postgres://climatesphere:$(DB_PASSWORD)@{{ .Release.Name }}-timescaledb:5432/climatesphere_tsdb"
+          volumeMounts:
+            - name: gateway-data
+              mountPath: /app/server/data
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8089
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8089
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources.gateway | nindent 12 }}
+      volumes:
+        - name: gateway-data
+          emptyDir: {}

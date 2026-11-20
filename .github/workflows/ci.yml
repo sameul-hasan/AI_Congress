@@ -1,0 +1,74 @@
+name: ClimateSphere Enterprise CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-build:
+    name: Platform Integration Tests & Production Bundler
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Execute Enterprise Platform & E2E Test Suite (94 Tests)
+        run: npm test
+        env:
+          NODE_ENV: test
+          PORT: 8089
+
+      - name: Execute Production Vite Bundler
+        run: npm run build
+
+      - name: Verify Production Dist Output
+        run: |
+          test -f dist/index.html || exit 1
+          test -f dist/landing.html || exit 1
+          test -f dist/sw.js || exit 1
+          test -f dist/manifest.json || exit 1
+          echo "Production build validation passed."
+
+  docker-build:
+    name: Docker Container Multi-Stage Build Check
+    runs-on: ubuntu-latest
+    needs: test-and-build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Edge Gateway Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: climatesphere/edge-gateway:latest
+
+      - name: Build Nginx Production Frontend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./nginx/Dockerfile
+          push: false
+          tags: climatesphere/frontend:latest

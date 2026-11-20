@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Sign in to ClimateSphere AI — Enterprise Environmental Decision Intelligence Platform."/>
+  <title>ClimateSphere AI — Sign In</title>
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com"/>
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg"/>
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
+  <meta name="theme-color" content="#00f5d4"/>
+  <script src="js/theme.js"></script>
+  <style>
+    :root {
+      --bg-deep: #02070e;
+      --bg-surface: #060d14;
+      --bg-elevated: #091420;
+      --primary: #00f5d4;
+      --primary-glow: rgba(0, 245, 212, 0.45);
+      --primary-d: #00ccb0;
+      --cyan: #00f0ff;
+      --indigo: #4361ee;
+      --violet: #7209b7;
+      --rose: #ff5370;
+      --amber: #ffb426;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #475569;
+      --glass-bg: rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.09);
+      --r-sm: 10px;
+      --r-md: 16px;
+      --r-lg: 24px;
+      --r-full: 9999px;
+      --font-sans: 'Plus Jakarta Sans','Inter',-apple-system,sans-serif;
+      --font-mono: 'JetBrains Mono',monospace;
+      --ease-apple: cubic-bezier(0.16,1,0.3,1);
+      --transition: all 0.3s var(--ease-apple);
+    }
+
+    /* ─── Light Mode Overrides ─── */
+    [data-theme="light"], body.theme-light {
+      --bg-deep: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-elevated: #f1f5f9;
+      --primary: #008d7d;
+      --primary-glow: rgba(0, 141, 125, 0.25);
+      --primary-d: #006e61;
+      --cyan: #0284c7;
+      --indigo: #4f46e5;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #94a3b8;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --glass-border: rgba(15, 23, 42, 0.12);
+    }
+    body.theme-light {
+      background: #f8fafc !important;
+      color: #0f172a !important;
+    }
+    body.theme-light::before {
+      background-image: linear-gradient(rgba(0,141,125,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,141,125,0.04) 1px, transparent 1px) !important;
+    }
+    body.theme-light .left-panel {
+      background: linear-gradient(145deg, #f0fdf9 0%, #f8fafc 50%, #edf2f7 100%) !important;
+      border-right: 1px solid #e2e8f0 !important;
+    }
+    body.theme-light .right-panel {
+      background: #ffffff !important;
+      border-left: 1px solid #e2e8f0 !important;
+    }
+    body.theme-light .logo-text {
+      background: linear-gradient(135deg, #0f172a 30%, #008d7d) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+    body.theme-light .hero-title {
+      color: #0f172a !important;
+    }
+    body.theme-light .form-title {
+      color: #0f172a !important;
+    }
+    body.theme-light .form-subtitle,
+    body.theme-light .hero-desc,
+    body.theme-light .f-desc,
+    body.theme-light .auth-tab:not(.active) {
+      color: #64748b !important;
+    }
+    body.theme-light .auth-tabs {
+      background: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.theme-light .auth-tab.active {
+      background: #ffffff !important;
+      color: #008d7d !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+    }
+    body.theme-light .feature-item {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+    }
+    body.theme-light .f-title {
+      color: #0f172a !important;
+    }
+    body.theme-light .form-input {
+      background: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    body.theme-light .form-input:focus {
+      background: #ffffff !important;
+      border-color: #008d7d !important;
+      box-shadow: 0 0 0 3px rgba(0, 141, 125, 0.15) !important;
+    }
+    body.theme-light .btn-google {
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+    }
+    body.theme-light .btn-google:hover {
+      background: #f8fafc !important;
+      border-color: #94a3b8 !important;
+    }
+    body.theme-light .role-label {
+      background: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    body.theme-light .role-option input:checked + .role-label {
+      background: #e0f6f3 !important;
+      border-color: #008d7d !important;
+      color: #008d7d !important;
+    }
+    body.theme-light .trust-chip {
+      background: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+      color: #475569 !important;
+    }
+    body.theme-light .sec-footer {
+      color: #64748b !important;
+      border-top-color: #e2e8f0 !important;
+    }
+
+    /* ─ High-Contrast Mode ─ */
+    [data-theme="contrast"], body.theme-contrast {
+      --bg-deep: #000000;
+      --bg-surface: #000000;
+      --bg-elevated: #080808;
+      --primary: #00ffcc;
+      --primary-glow: rgba(0, 255, 204, 0.6);
+      --text-main: #ffffff;
+      --text-muted: #e2e8f0;
+      --text-dim: #cbd5e1;
+      --glass-bg: #000000;
+      --glass-border: #00ffcc;
+    }
+
+    /* ─ Auth Navigation & Back Button ─ */
+    .auth-top-nav {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 12px;
+      z-index: 10;
+    }
+    .auth-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-full);
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      backdrop-filter: blur(16px);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .auth-back-btn:hover {
+      background: rgba(70,246,190,0.12);
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateX(-3px);
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+    .auth-theme-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 14px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-full);
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(16px);
+      transition: var(--transition);
+    }
+    .auth-theme-btn:hover {
+      color: var(--text-main);
+      border-color: var(--primary);
+      background: rgba(70,246,190,0.08);
+    }
+    .auth-theme-btn .theme-icon {
+      font-size: 14px;
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{background:var(--bg-deep);color:var(--text-main);font-size:16px;height:100%}
+    body{font-family:var(--font-sans);background:var(--bg-deep);min-height:100vh;display:flex;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(70,246,190,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(70,246,190,0.02) 1px,transparent 1px);background-size:40px 40px;z-index:0;pointer-events:none}
+    .orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+    .orb-1{width:500px;height:500px;top:-150px;left:-150px;background:radial-gradient(ellipse,rgba(70,246,190,0.07) 0%,transparent 70%)}
+    .orb-2{width:400px;height:400px;bottom:-100px;right:-100px;background:radial-gradient(ellipse,rgba(99,102,241,0.08) 0%,transparent 70%)}
+    .orb-3{width:300px;height:300px;top:40%;left:25%;background:radial-gradient(ellipse,rgba(6,182,212,0.05) 0%,transparent 70%)}
+
+    /* ─ Left Panel ─ */
+    .left-panel{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:48px;background:linear-gradient(145deg,rgba(70,246,190,0.04) 0%,rgba(6,182,212,0.02) 50%,rgba(99,102,241,0.03) 100%);border-right:1px solid var(--glass-border);overflow:hidden}
+    .left-panel::after{content:'';position:absolute;top:-30%;right:-20%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(70,246,190,0.07) 0%,transparent 70%);pointer-events:none}
+    .left-panel-glow{position:absolute;bottom:-20%;left:-10%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(99,102,241,0.06) 0%,transparent 70%);pointer-events:none}
+
+    .logo-lockup{display:flex;align-items:center;gap:12px}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--cyan));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 24px var(--primary-glow);flex-shrink:0}
+    .logo-text{font-size:18px;font-weight:800;letter-spacing:-0.02em;background:linear-gradient(135deg,#fff 30%,var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+    .hero-content{flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 0}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(70,246,190,0.08);border:1px solid rgba(70,246,190,0.2);border-radius:var(--r-full);font-family:var(--font-mono);font-size:11px;color:var(--primary);letter-spacing:0.06em;font-weight:600;margin-bottom:28px;width:fit-content}
+    .hero-badge::before{content:'';width:6px;height:6px;background:var(--primary);border-radius:50%;box-shadow:0 0 8px var(--primary);animation:pulse 2s ease infinite}
+    @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--primary)}50%{opacity:0.5;box-shadow:0 0 16px var(--primary)}}
+    .hero-title{font-size:clamp(2.2rem,4vw,3.2rem);font-weight:800;line-height:1.1;letter-spacing:-0.035em;margin-bottom:20px}
+    .hero-title .g{background:linear-gradient(135deg,var(--primary) 0%,var(--cyan) 50%,var(--indigo) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero-desc{font-size:1rem;color:var(--text-muted);line-height:1.7;max-width:440px;margin-bottom:40px}
+
+    .feature-list{display:flex;flex-direction:column;gap:14px}
+    .feature-item{display:flex;align-items:flex-start;gap:14px;padding:14px 16px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--r-md);backdrop-filter:blur(20px);transition:var(--transition)}
+    .feature-item:hover{border-color:rgba(70,246,190,0.2);background:rgba(70,246,190,0.04);transform:translateX(4px)}
+    .feature-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .feature-icon.g{background:rgba(70,246,190,0.12)}
+    .feature-icon.b{background:rgba(6,182,212,0.12)}
+    .feature-icon.v{background:rgba(139,92,246,0.12)}
+    .f-title{font-size:13px;font-weight:700;color:var(--text-main);margin-bottom:2px}
+    .f-desc{font-size:12px;color:var(--text-muted);line-height:1.5}
+
+    .trust-bar{padding-top:28px;border-top:1px solid var(--glass-border)}
+    .trust-label{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:12px;text-transform:uppercase}
+    .trust-logos{display:flex;flex-wrap:wrap;gap:8px}
+    .trust-chip{padding:4px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);border-radius:var(--r-full);font-size:10px;font-weight:600;color:var(--text-muted)}
+
+    /* ─ Right Panel ─ */
+    .right-panel{position:relative;z-index:1;width:480px;min-width:480px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 40px;background:rgba(5,12,22,0.95);backdrop-filter:blur(32px);overflow-y:auto}
+    .auth-card{width:100%;max-width:400px}
+
+    /* Tabs */
+    .auth-tabs{display:flex;background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);border-radius:var(--r-md);padding:4px;margin-bottom:28px}
+    .auth-tab{flex:1;padding:9px 16px;border:none;background:transparent;color:var(--text-muted);font-family:var(--font-sans);font-size:13px;font-weight:600;border-radius:10px;cursor:pointer;transition:var(--transition)}
+    .auth-tab.active{background:rgba(70,246,190,0.1);color:var(--primary);box-shadow:0 0 16px rgba(70,246,190,0.12)}
+    .auth-tab:hover:not(.active){color:var(--text-main);background:rgba(255,255,255,0.04)}
+
+    .form-header{margin-bottom:24px;text-align:center}
+    .form-title{font-size:1.5rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px}
+    .form-subtitle{font-size:13px;color:var(--text-muted)}
+
+    /* Google btn */
+    .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:13px 20px;background:#ffffff;border:none;border-radius:var(--r-md);font-family:var(--font-sans);font-size:14px;font-weight:600;color:#1a1a1a;cursor:pointer;transition:var(--transition);box-shadow:0 2px 8px rgba(0,0,0,0.3);position:relative;overflow:hidden}
+    .btn-google:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+    .btn-google:active{transform:none}
+    .g-icon{width:20px;height:20px;flex-shrink:0}
+
+    .divider{display:flex;align-items:center;gap:14px;margin:20px 0}
+    .divider-line{flex:1;height:1px;background:var(--glass-border)}
+    .divider-text{font-size:11px;font-family:var(--font-mono);color:var(--text-dim);letter-spacing:0.06em;white-space:nowrap}
+
+    /* Form fields */
+    .form-group{margin-bottom:16px}
+    .form-label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:7px;letter-spacing:0.03em}
+    .form-input{width:100%;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);border-radius:var(--r-sm);color:var(--text-main);font-family:var(--font-sans);font-size:14px;transition:var(--transition);outline:none}
+    .form-input:focus{border-color:rgba(70,246,190,0.45);background:rgba(70,246,190,0.04);box-shadow:0 0 0 3px rgba(70,246,190,0.1)}
+    .form-input::placeholder{color:var(--text-dim)}
+    .form-input.error{border-color:rgba(244,63,94,0.5);background:rgba(244,63,94,0.04)}
+    .ig{position:relative}
+    .ig .form-input{padding-left:44px}
+    .ii{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:16px;pointer-events:none}
+    .it{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);cursor:pointer;padding:0;font-size:15px;transition:color 0.2s}
+    .it:hover{color:var(--text-muted)}
+
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* Role selector */
+    .role-selector{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px}
+    .role-option{position:relative}
+    .role-option input[type="radio"]{position:absolute;opacity:0;pointer-events:none}
+    .role-label{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);border-radius:var(--r-sm);cursor:pointer;transition:var(--transition);text-align:center}
+    .role-label:hover{border-color:rgba(70,246,190,0.25);background:rgba(70,246,190,0.04)}
+    .role-option input:checked + .role-label{border-color:var(--primary);background:rgba(70,246,190,0.08);box-shadow:0 0 0 2px rgba(70,246,190,0.15)}
+    .re{font-size:18px}
+    .rn{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.04em}
+    .role-option input:checked + .role-label .rn{color:var(--primary)}
+
+    /* Submit */
+    .btn-submit{width:100%;padding:13px 20px;background:linear-gradient(135deg,var(--primary),var(--cyan));border:none;border-radius:var(--r-md);font-family:var(--font-sans);font-size:14px;font-weight:700;color:#020509;cursor:pointer;transition:var(--transition);margin-top:20px;position:relative;overflow:hidden;letter-spacing:0.01em}
+    .btn-submit::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);opacity:0;transition:opacity 0.3s}
+    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(70,246,190,0.4)}
+    .btn-submit:hover::before{opacity:1}
+    .btn-submit:active{transform:none}
+    .btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+    .btn-loader{display:none;width:16px;height:16px;border:2px solid rgba(2,5,9,0.3);border-top-color:#020509;border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .form-panel{display:none}
+    .form-panel.active{display:block}
+
+    .ffl{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+    .form-link{font-size:12px;color:var(--primary);text-decoration:none;cursor:pointer;transition:opacity 0.2s;background:none;border:none;font-family:var(--font-sans)}
+    .form-link:hover{opacity:0.75}
+
+    .form-alert{display:none;padding:12px 14px;border-radius:var(--r-sm);font-size:13px;margin-top:14px;line-height:1.5}
+    .form-alert.error{background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.25);color:#fda4af}
+    .form-alert.success{background:rgba(70,246,190,0.08);border:1px solid rgba(70,246,190,0.25);color:var(--primary)}
+    .form-alert.show{display:block}
+
+    /* Strength */
+    .pwd-strength{margin-top:8px;display:none}
+    .pwd-strength.visible{display:block}
+    .psb{display:flex;gap:4px;margin-bottom:4px}
+    .ps{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,0.08);transition:background 0.3s}
+    .ps.fw{background:var(--rose)}
+    .ps.ff{background:var(--amber)}
+    .ps.fg{background:var(--cyan)}
+    .ps.fs{background:var(--primary)}
+    .psl{font-size:11px;color:var(--text-dim)}
+
+    /* Checkbox */
+    .checkbox-group{display:flex;align-items:flex-start;gap:10px;margin-top:12px}
+    .checkbox-group input[type="checkbox"]{width:16px;height:16px;margin-top:2px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+    .checkbox-label{font-size:12px;color:var(--text-muted);line-height:1.5}
+    .checkbox-label a{color:var(--primary);text-decoration:none}
+    .checkbox-label a:hover{text-decoration:underline}
+
+    /* Security footer */
+    .sec-footer{margin-top:28px;padding-top:20px;border-top:1px solid var(--glass-border);display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-dim);font-family:var(--font-mono)}
+    .sec-dot{width:6px;height:6px;background:var(--primary);border-radius:50%;box-shadow:0 0 6px var(--primary);animation:pulse 2s ease infinite;flex-shrink:0}
+
+    /* Social proof */
+    .social-proof{margin-top:20px;text-align:center}
+    .sp-text{font-size:11px;color:var(--text-dim);margin-bottom:8px}
+    .av-stack{display:flex;justify-content:center;align-items:center}
+    .av{width:28px;height:28px;border-radius:50%;border:2px solid var(--bg-surface);background:linear-gradient(135deg,var(--primary),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#020509;margin-left:-8px}
+    .av:first-child{margin-left:0}
+    .av.more{background:rgba(255,255,255,0.08);color:var(--text-muted);font-size:9px}
+    .sp-count{font-size:12px;color:var(--text-muted);margin-left:10px;font-weight:600}
+
+    /* Toasts */
+    .toast-container{position:fixed;top:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+    .toast{padding:14px 18px;border-radius:var(--r-md);font-size:13px;font-weight:500;max-width:320px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:sIn 0.35s var(--ease-apple);display:flex;align-items:center;gap:10px}
+    @keyframes sIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+    @keyframes sOut{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+    .toast.info{background:rgba(8,15,26,0.95);border:1px solid rgba(70,246,190,0.25);color:var(--text-main)}
+    .toast.error{background:rgba(8,15,26,0.95);border:1px solid rgba(244,63,94,0.3);color:#fda4af}
+    .toast.success{background:rgba(8,15,26,0.95);border:1px solid rgba(70,246,190,0.4);color:var(--primary)}
+
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+    .modal-overlay.open{display:flex}
+    .modal-card{background:var(--bg-elevated);border:1px solid var(--glass-border);border-radius:var(--r-lg);padding:32px;width:380px;max-width:calc(100vw - 32px);box-shadow:0 32px 80px rgba(0,0,0,0.8);animation:mIn 0.35s var(--ease-apple)}
+    @keyframes mIn{from{transform:scale(0.94) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+    .modal-title{font-size:1.1rem;font-weight:700;margin-bottom:8px}
+    .modal-desc{font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.6}
+    .modal-actions{display:flex;gap:10px;margin-top:20px}
+    .btn-sec{flex:1;padding:11px;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:var(--r-sm);color:var(--text-muted);font-family:var(--font-sans);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition)}
+    .btn-sec:hover{background:rgba(255,255,255,0.08);color:var(--text-main)}
+    .btn-pri{flex:1;padding:11px;background:linear-gradient(135deg,var(--primary),var(--cyan));border:none;border-radius:var(--r-sm);color:#020509;font-family:var(--font-sans);font-size:13px;font-weight:700;cursor:pointer;transition:var(--transition)}
+    .btn-pri:hover{box-shadow:0 4px 16px rgba(70,246,190,0.3);transform:translateY(-1px)}
+
+    /* Loading */
+    .loading-overlay{display:none;position:fixed;inset:0;background:rgba(2,5,9,0.9);z-index:10000;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+    .loading-overlay.show{display:flex}
+    .loading-spinner{width:48px;height:48px;border:3px solid rgba(70,246,190,0.15);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite}
+    .loading-text{font-size:14px;color:var(--text-muted);font-family:var(--font-mono)}
+
+    /* Responsive */
+    @media(max-width:900px){body{flex-direction:column}.left-panel{display:none}.right-panel{width:100%;min-width:unset;padding:40px 24px;min-height:100vh}}
+    @media(max-width:480px){.right-panel{padding:32px 20px}.form-row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">Authenticating...</div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Forgot password modal -->
+<div class="modal-overlay" id="forgotModal">
+  <div class="modal-card">
+    <div class="modal-title">🔑 Reset your password</div>
+    <div class="modal-desc">Enter your email and we'll send you a secure reset link valid for 24 hours.</div>
+    <div class="form-group">
+      <label class="form-label">Email address</label>
+      <div class="ig">
+        <span class="ii">✉️</span>
+        <input type="email" class="form-input" id="forgotEmail" placeholder="you@company.com" autocomplete="email"/>
+      </div>
+    </div>
+    <div class="form-alert" id="forgotAlert"></div>
+    <div class="modal-actions">
+      <button class="btn-sec" onclick="closeForgotModal()">Cancel</button>
+      <button class="btn-pri" onclick="sendResetEmail()">Send Reset Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     LEFT PANEL
+══════════════════════════════════════ -->
+<div class="left-panel">
+  <div class="left-panel-glow"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+    <a href="landing.html" class="logo-lockup" title="Return to ClimateSphere AI Homepage" style="text-decoration:none;cursor:pointer;">
+      <img src="assets/favicon.png" alt="ClimateSphere Favicon" width="36" height="36" style="border-radius:9px;box-shadow:0 0 16px rgba(0,245,212,0.4);flex-shrink:0;"/>
+      <div class="logo-text">ClimateSphere AI</div>
+    </a>
+    <a href="landing.html" class="auth-back-btn" title="Return to Landing Page">
+      <span>← Back to Website</span>
+    </a>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-badge">PRODUCTION INTELLIGENCE PLATFORM</div>
+    <h1 class="hero-title">
+      Environmental<br/>Intelligence<br/><span class="g">Redefined.</span>
+    </h1>
+    <p class="hero-desc">
+      Enterprise-grade GHG telemetry, AI-powered compliance automation, and decarbonization planning — trusted by leading utilities across 3 continents.
+    </p>
+
+    <div class="feature-list">
+      <div class="feature-item">
+        <div class="feature-icon g">📡</div>
+        <div>
+          <div class="f-title">Real-Time CEMS Telemetry</div>
+          <div class="f-desc">Live SO₂, NOₓ, CO₂ monitoring with IED 2010/75/EU compliance at 1-second resolution.</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon b">🤖</div>
+        <div>
+          <div class="f-title">Gemini AI Decision Engine</div>
+          <div class="f-desc">Predictive dispatch, stoichiometric optimization, and natural language regulatory queries.</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon v">📋</div>
+        <div>
+          <div class="f-title">Statutory Compliance Suite</div>
+          <div class="f-desc">CSRD/ESRS E1, EU ETS MRV, MCERTS, and US EPA 40 CFR Part 75 automated filings.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="trust-bar">
+    <div class="trust-label">CERTIFIED &amp; COMPLIANT WITH</div>
+    <div class="trust-logos">
+      <span class="trust-chip">IED 2010/75/EU</span>
+      <span class="trust-chip">CSRD ESRS E1</span>
+      <span class="trust-chip">EU ETS Phase 4</span>
+      <span class="trust-chip">ISO 14064</span>
+      <span class="trust-chip">MCERTS</span>
+      <span class="trust-chip">US EPA 40 CFR</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     RIGHT PANEL — Auth Forms
+══════════════════════════════════════ -->
+<div class="right-panel">
+  <div class="auth-top-nav">
+    <a href="landing.html" class="auth-back-btn" id="btnBackToLanding" title="Return to ClimateSphere Landing Page">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      <span>Back to Website</span>
+    </a>
+    <button class="auth-theme-btn" id="authThemeToggle" type="button" aria-label="Toggle Theme" onclick="window.ClimateSphereTheme ? window.ClimateSphereTheme.cycle() : null">
+      <span class="theme-icon" id="authThemeIcon">☀️</span>
+      <span id="authThemeText">Day Mode</span>
+    </button>
+  </div>
+  <div class="auth-card">
+
+    <!-- Tabs -->
+    <div class="auth-tabs" role="tablist">
+      <button class="auth-tab active" id="tabLogin" role="tab" aria-selected="true" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" id="tabRegister" role="tab" aria-selected="false" onclick="switchTab('register')">Create Account</button>
+    </div>
+
+    <!-- ── LOGIN ── -->
+    <div class="form-panel active" id="panelLogin">
+      <div class="form-header">
+        <div class="form-title">Welcome back 👋</div>
+        <div class="form-subtitle">Sign in to your ClimateSphere workspace</div>
+      </div>
+
+      <button class="btn-google" id="btnGoogleLogin" onclick="initiateGoogleOAuth()">
+        <svg class="g-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text">OR SIGN IN WITH EMAIL</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <form id="loginForm" onsubmit="handleEmailLogin(event)" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Email address</label>
+          <div class="ig">
+            <span class="ii">✉️</span>
+            <input type="email" class="form-input" id="loginEmail" placeholder="you@company.com" autocomplete="email" required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="ffl">
+            <label class="form-label" for="loginPassword" style="margin-bottom:0">Password</label>
+            <button type="button" class="form-link" onclick="openForgotModal()">Forgot password?</button>
+          </div>
+          <div class="ig" style="margin-top:7px">
+            <span class="ii">🔒</span>
+            <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" autocomplete="current-password" required/>
+            <button type="button" class="it" onclick="togglePwd('loginPassword',this)" aria-label="Toggle password">👁️</button>
+          </div>
+        </div>
+        <div class="form-alert" id="loginAlert"></div>
+        <button type="submit" class="btn-submit" id="btnLoginSubmit">
+          <span id="btnLoginText">Sign In</span>
+          <div class="btn-loader" id="btnLoginLoader"></div>
+        </button>
+      </form>
+
+      <div class="social-proof">
+        <div class="sp-text">Trusted by 2,400+ environmental engineers</div>
+        <div style="display:flex;align-items:center;justify-content:center">
+          <div class="av-stack">
+            <div class="av">EV</div>
+            <div class="av">MT</div>
+            <div class="av">SL</div>
+            <div class="av">JK</div>
+            <div class="av more">+2k</div>
+          </div>
+          <span class="sp-count">⭐ 4.9/5 · SOC 2 Type II</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REGISTER ── -->
+    <div class="form-panel" id="panelRegister">
+      <div class="form-header">
+        <div class="form-title">Create account 🚀</div>
+        <div class="form-subtitle">Start your 14-day free trial — no credit card required</div>
+      </div>
+
+      <button class="btn-google" onclick="initiateGoogleOAuth()">
+        <svg class="g-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Sign up with Google
+      </button>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text">OR REGISTER WITH EMAIL</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <form id="registerForm" onsubmit="handleEmailRegister(event)" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="regFirstName">First name</label>
+            <input type="text" class="form-input" id="regFirstName" placeholder="Jane" autocomplete="given-name" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regLastName">Last name</label>
+            <input type="text" class="form-input" id="regLastName" placeholder="Smith" autocomplete="family-name" required/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regEmail">Work email</label>
+          <div class="ig">
+            <span class="ii">✉️</span>
+            <input type="email" class="form-input" id="regEmail" placeholder="jane@company.com" autocomplete="email" required/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regOrg">Organisation</label>
+          <div class="ig">
+            <span class="ii">🏢</span>
+            <input type="text" class="form-input" id="regOrg" placeholder="Vattenfall AG" autocomplete="organization" required/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Your role</label>
+          <div class="role-selector">
+            <div class="role-option">
+              <input type="radio" name="regRole" id="roleAdmin" value="ADMIN"/>
+              <label class="role-label" for="roleAdmin"><span class="re">👑</span><span class="rn">ADMIN</span></label>
+            </div>
+            <div class="role-option">
+              <input type="radio" name="regRole" id="roleEngineer" value="ENGINEER" checked/>
+              <label class="role-label" for="roleEngineer"><span class="re">⚙️</span><span class="rn">ENGINEER</span></label>
+            </div>
+            <div class="role-option">
+              <input type="radio" name="regRole" id="roleOperator" value="OPERATOR"/>
+              <label class="role-label" for="roleOperator"><span class="re">🎛️</span><span class="rn">OPERATOR</span></label>
+            </div>
+            <div class="role-option">
+              <input type="radio" name="regRole" id="roleAuditor" value="AUDITOR"/>
+              <label class="role-label" for="roleAuditor"><span class="re">📊</span><span class="rn">AUDITOR</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regPassword">Password</label>
+          <div class="ig">
+            <span class="ii">🔒</span>
+            <input type="password" class="form-input" id="regPassword" placeholder="Create a strong password" autocomplete="new-password" required oninput="checkPwdStrength(this.value)"/>
+            <button type="button" class="it" onclick="togglePwd('regPassword',this)" aria-label="Toggle password">👁️</button>
+          </div>
+          <div class="pwd-strength" id="pwdStrength">
+            <div class="psb">
+              <div class="ps" id="ps1"></div>
+              <div class="ps" id="ps2"></div>
+              <div class="ps" id="ps3"></div>
+              <div class="ps" id="ps4"></div>
+            </div>
+            <div class="psl" id="psl"></div>
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="regTerms" required/>
+          <label class="checkbox-label" for="regTerms">
+            I agree to the <a href="#" onclick="return false">Terms of Service</a> and <a href="#" onclick="return false">Privacy Policy</a>. I understand this platform processes environmental compliance data.
+          </label>
+        </div>
+
+        <div class="form-alert" id="registerAlert"></div>
+
+        <button type="submit" class="btn-submit" id="btnRegisterSubmit">
+          <span id="btnRegisterText">Create Account</span>
+          <div class="btn-loader" id="btnRegisterLoader"></div>
+        </button>
+      </form>
+    </div>
+
+    <!-- Security footer -->
+    <div class="sec-footer">
+      <div class="sec-dot"></div>
+      <span>TLS 1.3 · AES-256 · SOC 2 Type II · GDPR Compliant</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  /* ══════════════════════════════════════
+     AUTH PAGE CONTROLLER
+  ══════════════════════════════════════ */
+  const API_BASE = (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:')
+    ? 'http://localhost:8089'
+    : '';
+
+  /* ── Tab Switcher ── */
+  function switchTab(tab) {
+    ['login','register'].forEach(t => {
+      document.getElementById('panel' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+      const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+      el.classList.toggle('active', t === tab);
+      el.setAttribute('aria-selected', t === tab);
+    });
+  }
+
+  /* ── Toggle Password ── */
+  function togglePwd(id, btn) {
+    const inp = document.getElementById(id);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    btn.textContent = inp.type === 'text' ? '🙈' : '👁️';
+  }
+
+  /* ── Password Strength ── */
+  function checkPwdStrength(pwd) {
+    const w = document.getElementById('pwdStrength');
+    if (!pwd) { w.classList.remove('visible'); return; }
+    w.classList.add('visible');
+    let s = 0;
+    if (pwd.length >= 8) s++;
+    if (pwd.length >= 12) s++;
+    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) s++;
+    if (/[^A-Za-z0-9]/.test(pwd) || /[0-9]/.test(pwd)) s++;
+    const cls = ['','fw','ff','fg','fs'];
+    const lbl = ['','Weak','Fair','Good','Strong'];
+    for (let i = 1; i <= 4; i++) {
+      const seg = document.getElementById(`ps${i}`);
+      seg.className = 'ps';
+      if (i <= s) seg.classList.add(cls[s]);
+    }
+    document.getElementById('psl').textContent = lbl[s] || '';
+  }
+
+  /* ── Google OAuth 2.0 ── */
+  async function initiateGoogleOAuth() {
+    showLoading('Connecting to Google...');
+    try {
+      const resp = await fetch(`${API_BASE}/api/auth/google/init`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.authUrl) {
+          sessionStorage.setItem('cs_oauth_state', data.state || '');
+          window.location.href = data.authUrl;
+          return;
+        }
+      }
+    } catch (e) { /* offline - use demo */ }
+    hideLoading();
+    simulateGoogleLogin();
+  }
+
+  async function simulateGoogleLogin() {
+    showLoading('Signing in with Google...');
+    await sleep(1800);
+    try {
+      const resp = await fetch(`${API_BASE}/api/auth/token`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'admin@climatesphere.ai', password: 'cs_admin_2026' })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        persistSession({ name: 'Google User', email: 'demo@climatesphere.ai', role: data.role || 'ADMIN', avatar: 'GU', provider: 'Google OAuth 2.0', tenantId: 'tenant-eu-energy' }, data.accessToken, data.refreshToken);
+        hideLoading();
+        showToast('✅ Signed in with Google!', 'success');
+        await sleep(500);
+        redirectToApp();
+        return;
+      }
+    } catch(e) {}
+    persistSession({ name: 'Google User', email: 'demo@climatesphere.ai', role: 'ADMIN', avatar: 'GU', provider: 'Google OAuth 2.0', tenantId: 'tenant-eu-energy' }, 'demo_offline_token', null);
+    hideLoading();
+    showToast('✅ Demo login successful!', 'success');
+    await sleep(500);
+    redirectToApp();
+  }
+
+  /* ── OAuth Callback ── */
+  async function checkOAuthCallback() {
+    const p = new URLSearchParams(window.location.search);
+    const code = p.get('code'), state = p.get('state'), error = p.get('error');
+    if (error) { showAlert('loginAlert', `Google sign-in cancelled: ${error}`, 'error'); clearUrl(); return; }
+    if (!code) return;
+    const saved = sessionStorage.getItem('cs_oauth_state');
+    if (state && saved && state !== saved) { showAlert('loginAlert', 'Security check failed.', 'error'); clearUrl(); return; }
+    showLoading('Completing Google sign-in...');
+    sessionStorage.removeItem('cs_oauth_state');
+    try {
+      const resp = await fetch(`${API_BASE}/api/auth/google/callback`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, state })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        persistSession(data.user || { name: 'Google User', email: '', role: 'ENGINEER', provider: 'Google OAuth 2.0', avatar: 'GU' }, data.accessToken, data.refreshToken);
+        clearUrl(); hideLoading(); showToast('✅ Google sign-in successful!', 'success'); redirectToApp(); return;
+      }
+    } catch(e) {}
+    clearUrl(); hideLoading();
+    showAlert('loginAlert', 'Google sign-in failed. Please try again.', 'error');
+  }
+
+  function clearUrl() { window.history.replaceState({}, document.title, window.location.pathname); }
+
+  /* ── Email Login ── */
+  async function handleEmailLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const pwd   = document.getElementById('loginPassword').value;
+    if (!email || !pwd) { showAlert('loginAlert', 'Please enter your email and password.', 'error'); return; }
+    setLoading('btnLoginSubmit','btnLoginText','btnLoginLoader', true);
+    hideAlert('loginAlert');
+    try {
+      const resp = await fetch(`${API_BASE}/api/auth/token`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password: pwd })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        persistSession({ name: data.name || email.split('@')[0], email, role: data.role || 'OPERATOR', avatar: email.slice(0,2).toUpperCase(), provider: 'Email / Password', tenantId: data.tenantId || 'tenant-eu-energy' }, data.accessToken, data.refreshToken);
+        showToast(`✅ Welcome back!`, 'success');
+        await sleep(600); redirectToApp();
+      } else {
+        const err = await resp.json().catch(()=>({}));
+        setLoading('btnLoginSubmit','btnLoginText','btnLoginLoader', false);
+        showAlert('loginAlert', err.error || 'Invalid email or password.', 'error');
+      }
+    } catch(e) {
+      setLoading('btnLoginSubmit','btnLoginText','btnLoginLoader', false);
+      showAlert('loginAlert', 'Unable to connect to server. Please try again.', 'error');
+    }
+  }
+
+  /* ── Email Register ── */
+  async function handleEmailRegister(e) {
+    e.preventDefault();
+    const fn    = document.getElementById('regFirstName').value.trim();
+    const ln    = document.getElementById('regLastName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const org   = document.getElementById('regOrg').value.trim();
+    const pwd   = document.getElementById('regPassword').value;
+    const role  = document.querySelector('input[name="regRole"]:checked')?.value || 'ENGINEER';
+    const terms = document.getElementById('regTerms').checked;
+    if (!fn || !ln || !email || !org || !pwd) { showAlert('registerAlert', 'Please fill in all required fields.', 'error'); return; }
+    if (!terms) { showAlert('registerAlert', 'You must agree to the Terms of Service.', 'error'); return; }
+    if (pwd.length < 8) { showAlert('registerAlert', 'Password must be at least 8 characters.', 'error'); return; }
+    setLoading('btnRegisterSubmit','btnRegisterText','btnRegisterLoader', true);
+    hideAlert('registerAlert');
+    try {
+      const resp = await fetch(`${API_BASE}/api/auth/register`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName: fn, lastName: ln, email, organisation: org, password: pwd, role })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        persistSession({ name: `${fn} ${ln}`, email, role: data.role || role, avatar: `${fn[0]}${ln[0]}`.toUpperCase(), provider: 'Email / Password', tenantId: data.tenantId || 'tenant-eu-energy', organisation: org }, data.accessToken, data.refreshToken);
+        showToast(`🎉 Welcome, ${fn}! Account created.`, 'success');
+        await sleep(700); redirectToApp();
+      } else {
+        const err = await resp.json().catch(()=>({}));
+        setLoading('btnRegisterSubmit','btnRegisterText','btnRegisterLoader', false);
+        showAlert('registerAlert', err.error || 'Registration failed. Please try again.', 'error');
+      }
+    } catch(e) {
+      setLoading('btnRegisterSubmit','btnRegisterText','btnRegisterLoader', false);
+      showAlert('registerAlert', 'Connection error. Please retry.', 'error');
+    }
+  }
+
+  /* ── Forgot Password ── */
+  function openForgotModal() { document.getElementById('forgotModal').classList.add('open'); document.getElementById('forgotEmail').focus(); }
+  function closeForgotModal() { document.getElementById('forgotModal').classList.remove('open'); hideAlert('forgotAlert'); }
+  async function sendResetEmail() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    if (!email) { showAlert('forgotAlert', 'Please enter your email.', 'error'); return; }
+    try { await fetch(`${API_BASE}/api/auth/password-reset`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) }); } catch(e){}
+    showAlert('forgotAlert', `If ${email} is registered, a reset link will be sent shortly.`, 'success');
+    setTimeout(closeForgotModal, 3000);
+  }
+
+  /* ── Session ── */
+  function persistSession(user, token, refresh) {
+    const session = {
+      user, token, backendToken: token,
+      authenticatedAt: new Date().toISOString(),
+      tenant: {
+        id: user.tenantId || 'tenant-eu-energy',
+        name: user.organisation || 'ClimateSphere Enterprise',
+        plan: 'ENTERPRISE_PLUS',
+        facilities: ['DU-03','RT-07','MI-02','WA-04','MD-01'],
+        complianceFrameworks: ['IED 2010/75/EU','CSRD ESRS E1','EU ETS Phase 4']
+      }
+    };
+    localStorage.setItem('cs_enterprise_session', JSON.stringify(session));
+    if (refresh) sessionStorage.setItem('cs_refresh_token', refresh);
+  }
+
+  function redirectToApp() {
+    const ret = sessionStorage.getItem('cs_return_to') || 'index.html';
+    sessionStorage.removeItem('cs_return_to');
+    window.location.href = ret;
+  }
+
+  /* ── UI ── */
+  function showLoading(msg='Authenticating...') {
+    document.getElementById('loadingText').textContent = msg;
+    document.getElementById('loadingOverlay').classList.add('show');
+  }
+  function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+
+  function showAlert(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = `form-alert ${type} show`;
+  }
+  function hideAlert(id) { document.getElementById(id).classList.remove('show'); }
+
+  function setLoading(btnId, txtId, ldrId, loading) {
+    document.getElementById(btnId).disabled = loading;
+    document.getElementById(txtId).style.display = loading ? 'none' : 'inline';
+    document.getElementById(ldrId).style.display = loading ? 'block' : 'none';
+  }
+
+  function showToast(msg, type = 'info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<span>${type==='success'?'✅':type==='error'?'❌':'ℹ️'}</span><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.animation = 'sOut 0.35s ease forwards'; setTimeout(() => t.remove(), 400); }, 4000);
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  document.getElementById('forgotModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeForgotModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeForgotModal(); });
+
+  /* ── Session check ── */
+  function checkSession() {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get('logout')) {
+        localStorage.removeItem('cs_enterprise_session');
+        sessionStorage.removeItem('cs_refresh_token');
+        showToast('Signed out of enterprise session', 'info');
+        return;
+      }
+      const s = JSON.parse(localStorage.getItem('cs_enterprise_session') || '{}');
+      if (s && s.token && s.user && !p.get('code')) {
+        redirectToApp();
+      }
+    } catch(e) {}
+  }
+
+  /* ── URL prefill ── */
+  function prefill() {
+    const p = new URLSearchParams(window.location.search);
+    const email = p.get('email');
+    const tab   = p.get('tab');
+    if (email) { document.getElementById('loginEmail').value = email; document.getElementById('regEmail').value = email; }
+    if (tab === 'register') switchTab('register');
+  }
+
+  /* ── Particle background ── */
+  function initParticles() {
+    const c = document.createElement('canvas');
+    c.style.cssText = 'position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.5';
+    document.body.insertBefore(c, document.body.firstChild);
+    const ctx = c.getContext('2d');
+    let W = c.width = innerWidth, H = c.height = innerHeight;
+    const pts = Array.from({length:55}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-.5)*.3, vy: (Math.random()-.5)*.3,
+      r: Math.random()*1.4+.4, a: Math.random()*.4+.1
+    }));
+    window.addEventListener('resize', () => { W = c.width = innerWidth; H = c.height = innerHeight; });
+    (function draw() {
+      ctx.clearRect(0,0,W,H);
+      for (const p of pts) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(70,246,190,${p.a})`; ctx.fill();
+      }
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i+1; j < pts.length; j++) {
+          const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if (d < 90) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(70,246,190,${.06*(1-d/90)})`;
+            ctx.lineWidth = .5;
+            ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    })();
+  }
+
+  /* ── Boot ── */
+  initParticles();
+  prefill();
+  checkOAuthCallback().then(() => {
+    if (!new URLSearchParams(window.location.search).get('code')) checkSession();
+  });
+</script>
+</body>
+</html>

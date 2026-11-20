@@ -1,0 +1,16 @@
+apiVersion: v2
+name: climatesphere
+description: Enterprise Industrial CEMS Telemetry, Decarbonization & Statutory Environmental Intelligence Platform
+type: application
+version: 4.8.0
+appVersion: "4.8.0"
+keywords:
+  - cems
+  - en14181
+  - ied
+  - csrd
+  - industrial-ai
+home: https://climatesphere.ai
+maintainers:
+  - name: ClimateSphere Engineering Team
+    email: engineering@climatesphere.ai

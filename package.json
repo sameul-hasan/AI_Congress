@@ -1,0 +1,45 @@
+{
+  "name": "climatesphere-intelligence",
+  "version": "4.8.0",
+  "description": "Enterprise Industrial Decarbonization, CEMS Telemetry, and AI Decision Intelligence Platform",
+  "main": "server/edge_gateway.js",
+  "scripts": {
+    "start": "node server/edge_gateway.js",
+    "dev": "vite",
+    "dev:gateway": "node server/edge_gateway.js",
+    "build": "vite build",
+    "preview": "vite preview --port 8080",
+    "test": "node tests/platform.test.mjs && node tests/e2e.test.mjs && node tests/auth_flow.test.mjs && node --test tests/phase1_scenarios_assets.test.mjs && node --test tests/phase2_security_auth.test.mjs && node --test tests/phase3_hardening_pipeline.test.mjs && node --test tests/phase4_operations_deployment.test.mjs",
+    "test:platform": "node tests/platform.test.mjs",
+    "test:e2e": "node tests/e2e.test.mjs",
+    "test:auth": "node tests/auth_flow.test.mjs",
+    "test:phase1": "node --test tests/phase1_scenarios_assets.test.mjs",
+    "test:phase2": "node --test tests/phase2_security_auth.test.mjs",
+    "test:phase3": "node --test tests/phase3_hardening_pipeline.test.mjs",
+    "test:phase4": "node --test tests/phase4_operations_deployment.test.mjs"
+  },
+  "keywords": [
+    "cems",
+    "csrd",
+    "decarbonization",
+    "emissions-monitoring",
+    "industrial-ai",
+    "en14181",
+    "opc-ua",
+    "mqtt",
+    "esrs"
+  ],
+  "author": "ClimateSphere Engineering Team",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "mqtt": "^5.16.0",
+    "pg": "^8.23.0",
+    "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "serialport": "^12.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.2"
+  }
+}

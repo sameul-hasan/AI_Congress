@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="ClimateSphere AI — Enterprise Environmental Decision Intelligence Platform for real-time GHG accounting, CEMS telemetry, regulatory compliance and decarbonization scenario planning."/>
+  <title>ClimateSphere AI — Environmental Decision Intelligence</title>
+
+  <!-- Fonts -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com"/>
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+  <!-- Design System -->
+  <link rel="stylesheet" href="css/main.css"/>
+  <script src="js/theme.js"></script>
+
+  <!-- PWA Web App Manifest -->
+  <!-- Favicon & PWA Icons (Orbital Quantum Globe) -->
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png"/>
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
+  <meta name="theme-color" content="#00f5d4"/>
+
+  <!-- Enterprise Auth Guard -->
+  <script>
+    (function guardAuth() {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const s = JSON.parse(localStorage.getItem('cs_enterprise_session') || '{}');
+        const hasValidSession = s && s.user && s.token;
+
+        if (!hasValidSession) {
+          // If developer or demo mode explicitly requested via URL parameter
+          if (p.get('demo') === '1' || p.get('unlock') === '1') {
+            const defaultSession = {
+              user: { name: 'Dr. Elena Vance', email: 'elena@climatesphere.io', role: 'ADMIN', avatar: 'EV' },
+              token: 'enterprise_session_active_jwt',
+              authenticatedAt: new Date().toISOString()
+            };
+            localStorage.setItem('cs_enterprise_session', JSON.stringify(defaultSession));
+            return;
+          }
+          // Redirect unauthenticated operators to secure login portal
+          sessionStorage.setItem('cs_return_to', window.location.href);
+          window.location.replace('auth.html');
+        }
+      } catch (e) {
+        window.location.replace('auth.html');
+      }
+    })();
+  </script>
+
+  <style>
+    /* ─── Shell Layout & Responsive Structure ─── */
+    .sidebar {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      flex-shrink: 0;
+      transition: width var(--transition), min-width var(--transition);
+    }
+    .sidebar.collapsed {
+      width: var(--sidebar-collapsed);
+      min-width: var(--sidebar-collapsed);
+    }
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+      height: 100vh;
+      margin-left: 0 !important;
+    }
+    .topbar {
+      width: 100%;
+      height: var(--topbar-height);
+      min-height: var(--topbar-height);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .page-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: var(--space-lg);
+    }
+
+    /* Mobile overlay */
+    @media (max-width: 900px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: var(--sidebar-width) !important;
+        min-width: var(--sidebar-width) !important;
+        transform: translateX(-100%);
+        z-index: 300;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.7);
+      }
+      .sidebar.mobile-open { transform: translateX(0); }
+      .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 299; }
+      .sidebar-overlay.active { display: block; }
+    }
+
+    /* Command palette */
+    .cmd-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 500;
+      align-items: flex-start; justify-content: center;
+      padding-top: 120px;
+    }
+    .cmd-overlay.active { display: flex; }
+    .cmd-palette {
+      width: 100%; max-width: 560px;
+      background: var(--surface-low);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(70,246,190,0.15);
+    }
+    .cmd-input-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .cmd-input-row svg { color: var(--primary); flex-shrink: 0; }
+    .cmd-input {
+      flex: 1; background: none; border: none;
+      color: var(--on-surface); font-family: var(--font-prose); font-size: 14px;
+      outline: none;
+    }
+    .cmd-results { max-height: 340px; overflow-y: auto; }
+    .cmd-result {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px; cursor: pointer;
+      transition: background var(--transition-fast);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .cmd-result:hover, .cmd-result.selected { background: rgba(70,246,190,0.08); }
+    .cmd-result-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; color: var(--primary); }
+    .cmd-result-label { flex: 1; font-size: 13px; color: var(--on-surface); }
+    .cmd-result-type { font-family: var(--font-mono); font-size: 10px; color: var(--on-surface-variant); }
+    .cmd-section { padding: 8px 16px 4px; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--on-surface-dim); }
+    .cmd-footer { padding: 8px 16px; border-top: 1px solid var(--border-subtle); display: flex; gap: 14px; }
+    .cmd-key { font-family: var(--font-mono); font-size: 10px; color: var(--on-surface-variant); display: flex; align-items: center; gap: 4px; }
+    .cmd-key kbd { background: var(--surface-high); border: 1px solid var(--border-medium); border-radius: 3px; padding: 1px 5px; font-size: 9px; }
+
+    /* Mobile hamburger */
+    .mobile-menu-btn {
+      display: none; background: none; border: none;
+      color: var(--on-surface-variant); cursor: pointer;
+      padding: 6px; border-radius: var(--radius-sm);
+    }
+    @media (max-width: 900px) { .mobile-menu-btn { display: flex; align-items: center; justify-content: center; } }
+
+    /* Notification badge */
+    .notif-badge {
+      position: absolute; top: -3px; right: -3px;
+      width: 16px; height: 16px; background: var(--status-red);
+      border-radius: 50%; font-size: 9px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-family: var(--font-mono);
+      border: 2px solid var(--surface-lowest);
+    }
+
+    /* Search bar */
+    .search-bar {
+      position: relative; display: flex; align-items: center; flex-shrink: 0;
+    }
+    .search-bar input {
+      background: var(--surface-container);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0 30px 0 26px;
+      height: 28px;
+      color: var(--on-surface); font-size: 11px;
+      outline: none; width: 155px;
+      transition: width var(--transition), border-color var(--transition-fast);
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+    .search-bar input:focus { width: 195px; border-color: rgba(70,246,190,0.4); cursor: text; }
+    .search-bar .search-icon { position: absolute; left: 8px; color: var(--on-surface-variant); pointer-events: none; }
+    .search-bar .search-kbd { position: absolute; right: 5px; font-family: var(--font-mono); font-size: 9px; color: var(--on-surface-dim); background: var(--surface-high); border: 1px solid var(--border-subtle); padding: 1px 4px; border-radius: 3px; pointer-events: none; }
+
+    /* Global Facility Selector */
+    .facility-selector-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      height: 28px;
+      background: var(--surface-container);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0 8px;
+      box-sizing: border-box;
+      transition: border-color var(--transition-fast);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .facility-selector-wrapper:hover {
+      border-color: rgba(70, 246, 190, 0.4);
+    }
+    .global-facility-select {
+      background: transparent;
+      border: none;
+      color: var(--on-surface);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+    .global-facility-select option {
+      background: var(--surface-lowest);
+      color: var(--on-surface);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    /* Export toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--surface-container-high, var(--surface-high));
+      border: 1px solid var(--primary); border-radius: var(--radius);
+      padding: 12px 18px; color: var(--on-surface);
+      font-family: var(--font-mono); font-size: 12px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      z-index: 600; transform: translateY(80px); opacity: 0;
+      transition: all 300ms cubic-bezier(0.4,0,0.2,1);
+    }
+    .toast.visible { transform: translateY(0); opacity: 1; }
+    .toast-icon { color: var(--primary); font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR OVERLAY (mobile) ══ -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside class="sidebar" id="sidebar">
+  <!-- Logo -->
+  <div class="sidebar-header">
+    <a href="landing.html" class="logo" style="text-decoration:none;cursor:pointer;display:flex;align-items:center;gap:10px;" title="Visit Public Landing Page">
+      <img src="assets/favicon.png" alt="ClimateSphere Logo" width="30" height="30" style="flex-shrink:0;border-radius:7px;box-shadow:0 0 12px rgba(0,245,212,0.35);"/>
+      <div style="display:flex;flex-direction:column;overflow:hidden;" class="logo-text">
+        <span style="font-size:13px;font-weight:700;color:var(--on-surface);white-space:nowrap;letter-spacing:-0.02em;">ClimateSphere</span>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--primary);letter-spacing:0.1em;text-transform:uppercase;">Intelligence AI</span>
+      </div>
+    </a>
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M2 8h12M2 4h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Monitoring Clusters</span>
+      <a class="nav-item active" data-page="dashboard" href="#" id="nav-dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Overview</span>
+      </a>
+      <a class="nav-item" data-page="carboniq" href="#" id="nav-carboniq">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <span>CarbonIQ</span>
+      </a>
+      <a class="nav-item" data-page="cems" href="#" id="nav-cems">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>CEMS Telemetry</span>
+        <span class="nav-badge badge-alert">LIVE</span>
+      </a>
+      <a class="nav-item" data-page="climateshield" href="#" id="nav-climateshield">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Climate Shield</span>
+      </a>
+      <a class="nav-item" data-page="energybrain" href="#" id="nav-energybrain">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Energy Brain</span>
+      </a>
+      <a class="nav-item" data-page="emissions" href="#" id="nav-emissions">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Emissions Accounting</span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-section-label">Decision Analytics</span>
+      <a class="nav-item" data-page="comparison" href="#" id="nav-comparison">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+        <span>Hotspot Comparison</span>
+      </a>
+      <a class="nav-item" data-page="scenario" href="#" id="nav-scenario">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        <span>Scenario Workbench</span>
+      </a>
+      <a class="nav-item" data-page="ai" href="#" id="nav-ai">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>AI Terminal</span>
+      </a>
+      <a class="nav-item" data-page="calibration" href="#" id="nav-calibration">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 5.34L3.93 3.93M12 2v2M12 20v2M4.93 19.07l1.41-1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/></svg>
+        <span>Calibration / QAL3</span>
+      </a>
+      <a class="nav-item" data-page="compliance" href="#" id="nav-compliance">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>CSRD / EPA Filing</span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-section-label">Enterprise &amp; Feeds</span>
+      <a class="nav-item" data-page="admin" href="#" id="nav-admin">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span>Admin &amp; RBAC</span>
+      </a>
+      <a class="nav-item" data-page="webhooks" href="#" id="nav-webhooks">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+        <span>Webhooks &amp; Alerts</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <div class="system-status" title="Industrial Telemetry Engine Active · v4.8">
+      <div class="status-dot dot-green"></div>
+      <span class="mono-text">TELEMETRY LIVE</span>
+      <span class="mono-text" style="margin-left:auto;color:var(--on-surface-variant);">v4.8</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════ MAIN CONTENT ══════════════ -->
+<div class="main-content" id="mainContent">
+
+  <!-- ── TOPBAR ── -->
+  <header class="topbar">
+    <!-- Zone 1: Context & Navigation (Left) -->
+    <div class="topbar-left">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <nav class="breadcrumb">
+        <span class="breadcrumb-root">ClimateSphere</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="breadcrumb-current" id="breadcrumbCurrent">Overview Dashboard</span>
+      </nav>
+      <!-- Industrial Edge Gateway Live Monitor Trigger -->
+      <button class="live-indicator" id="btnOpenEdgeGateway" title="Open Industrial Edge Telemetry & Ingestion Hub (OPC-UA / MQTT / Kafka · 1 Hz)">
+        <div class="pulse-dot"></div>
+        <span class="mono-text">EDGE GATEWAY</span>
+      </button>
+
+      <!-- Official EU Copernicus CAMS Certified Provenance Badge -->
+      <button class="live-indicator certified-badge" id="btnCertifiedSourceModal" style="background:rgba(0,245,212,0.08);border:1px solid rgba(0,245,212,0.35);cursor:pointer;" title="Click to view Official EU Copernicus (CAMS) Statutory Certificate of Authenticity">
+        <span style="font-size:11px;">🇪🇺</span>
+        <span class="mono-text" style="color:var(--primary);font-weight:700;">CERTIFIED CAMS</span>
+        <span class="mono-text live-indicator-sub" id="topbarCertifiedLabel" style="display:none;">EU/EEA · REAL-TIME</span>
+      </button>
+
+      <!-- Global Active Facility Selector -->
+      <div class="facility-selector-wrapper" id="topbarFacilityWrapper" title="Global Monitored Facility — Changes sync across CEMS, Hotspots, Comparison & AI Terminal">
+        <span style="font-size:12px;">🏭</span>
+        <select id="globalFacilitySelect" class="global-facility-select" aria-label="Global Monitored Facility">
+          <option value="DU-03">DU-03 · Duisburg (DE)</option>
+          <option value="RT-07">RT-07 · Rotterdam (NL)</option>
+          <option value="MI-02">MI-02 · Milan (IT)</option>
+          <option value="WA-04">WA-04 · Warsaw (PL)</option>
+          <option value="MD-01">MD-01 · Madrid (ES)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Zone 2: Temporal Filter (Center) -->
+    <div class="topbar-center">
+      <div class="time-range-selector" id="timeRangeSelector">
+        <button class="time-btn" data-range="today">Today</button>
+        <button class="time-btn" data-range="7d">7D</button>
+        <button class="time-btn" data-range="30d">30D</button>
+        <button class="time-btn active" data-range="q3">Q3 2026</button>
+        <button class="time-btn" data-range="custom" title="Custom date range">Custom</button>
+      </div>
+    </div>
+
+    <!-- Zone 3: Operator Hub & Utilities (Right) -->
+    <div class="topbar-right">
+      <!-- Live Clock -->
+      <div class="topbar-clock">
+        UTC: <span id="liveTime">—</span>
+      </div>
+
+      <!-- Quick Command Search -->
+      <div class="search-bar">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search telemetry, assets…" aria-label="Search" readonly/>
+        <span class="search-kbd">⌘K</span>
+      </div>
+
+      <!-- Statutory Theme Toggle (Sole Light / Dark Mode switch) -->
+      <button id="btnThemeToggle" class="topbar-btn theme-toggle-btn" title="Toggle High-Contrast Statutory Daylight Mode (WCAG AAA)">
+        <span id="themeToggleIcon">☀️</span>
+        <span id="themeToggleLabel" class="topbar-btn-label">DAY MODE</span>
+      </button>
+
+      <!-- Active Alerts Notification Bell (Sole notification center bell) -->
+      <div class="icon-btn" id="alertBtn" role="button" aria-label="View alerts" tabindex="0" title="Active alerts (3)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-badge">3</span>
+      </div>
+
+      <!-- User Profile Hub & Executive Utilities Dropdown -->
+      <div class="user-menu-wrapper" id="userMenuWrapper">
+        <button class="user-profile-btn" id="userProfileBtn" type="button" aria-expanded="false" aria-haspopup="true" title="User account preferences, persona & control room utilities">
+          <div class="avatar" id="topAvatar">EV</div>
+          <div class="user-profile-text">
+            <div style="display:flex;align-items:center;gap:5px;">
+              <span id="topUserName">Dr. Elena Vance</span>
+              <span class="chip chip-green" id="topRoleBadge">ADMIN</span>
+            </div>
+            <span id="topUserRole">VP SUSTAINABILITY</span>
+          </div>
+          <svg class="user-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+
+        <!-- Executive Dropdown Menu -->
+        <div class="user-menu-dropdown" id="userMenuDropdown" role="menu" aria-label="User Account and Utilities">
+          <!-- User Info Summary -->
+          <div class="user-menu-header">
+            <div class="avatar user-menu-avatar" id="menuAvatar">EV</div>
+            <div class="user-menu-info">
+              <div class="user-menu-name" id="menuUserName">Dr. Elena Vance</div>
+              <div class="user-menu-email" id="menuUserEmail">elena@climatesphere.io</div>
+              <div class="user-menu-meta">
+                <span class="chip chip-green" id="menuRoleChip">ADMIN</span>
+                <span class="user-menu-title" id="menuUserTitle">VP Sustainability &amp; ESG</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Switch Persona Trigger -->
+          <button class="user-menu-item" id="btnMenuSwitchRole" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            <div class="menu-item-text">
+              <span class="menu-item-title">Switch Enterprise Role (RBAC)</span>
+              <span class="menu-item-desc">VP · Lead Engineer · Plant Operator · Auditor</span>
+            </div>
+          </button>
+
+          <div class="user-menu-divider"></div>
+          <div class="user-menu-section-title">CONTROL ROOM PREFERENCES</div>
+
+          <!-- Auditory Alarm Chime Toggle (Speaker icon, NOT duplicate bell!) -->
+          <button id="btnAudioAlarmToggle" class="user-menu-item" type="button" title="Auditory Exceedance Alarm Chime (Toggle Mute/Unmute)">
+            <span id="audioAlarmIcon" style="font-size:14px;width:18px;text-align:center;">🔊</span>
+            <div class="menu-item-text">
+              <span class="menu-item-title">Auditory Alarm Chime</span>
+              <span class="menu-item-desc" id="audioAlarmDesc">ISO 11429 acoustic exceedance alarm</span>
+            </div>
+            <span id="audioAlarmLabel" class="menu-toggle-pill">CHIME ON</span>
+          </button>
+
+          <!-- Language Internationalization (i18n) Selector -->
+          <div class="user-menu-item user-menu-lang-row" id="topbarLangWrapper">
+            <span style="font-size:14px;width:18px;text-align:center;">🌐</span>
+            <div class="menu-item-text">
+              <span class="menu-item-title">Platform Language</span>
+              <span class="menu-item-desc">Multi-lingual localization</span>
+            </div>
+            <select id="globalLangSelect" class="user-menu-select" aria-label="Platform Language">
+              <option value="en">English (EN)</option>
+              <option value="de">Deutsch (DE)</option>
+              <option value="fr">Français (FR)</option>
+              <option value="pl">Polski (PL)</option>
+              <option value="es">Español (ES)</option>
+            </select>
+          </div>
+
+          <div class="user-menu-divider"></div>
+          <div class="user-menu-section-title">SECURITY &amp; SYSTEM TOOLS</div>
+
+          <!-- Quick Control Room Screen Lock Button -->
+          <button id="btnLockScreen" class="user-menu-item" type="button" title="Lock Operator Screen (IEC 62443 Cyber-Security)">
+            <span style="font-size:14px;width:18px;text-align:center;">🔒</span>
+            <div class="menu-item-text">
+              <span class="menu-item-title">Lock Screen Terminal</span>
+              <span class="menu-item-desc">IEC 62443 cyber-security compliance</span>
+            </div>
+            <kbd class="menu-kbd">LOCK</kbd>
+          </button>
+
+          <!-- Interactive API Reference Bridge -->
+          <a id="btnTopApiDocs" href="/docs" target="_blank" class="user-menu-item" title="Open Interactive OpenAPI 3.0 Documentation &amp; REST Explorer">
+            <span style="font-size:14px;width:18px;text-align:center;">📖</span>
+            <div class="menu-item-text">
+              <span class="menu-item-title">OpenAPI 3.0 Documentation</span>
+              <span class="menu-item-desc">Interactive REST &amp; WebSocket API explorer</span>
+            </div>
+            <span class="chip chip-cyan" style="font-size:9px;">DOCS ↗</span>
+          </a>
+
+          <!-- Public Experience Landing Page Bridge Button -->
+          <a href="landing.html" class="user-menu-item landing-bridge-btn" id="btnMenuLanding" title="Return to Public Experience Landing Page">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;text-align:center;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <div class="menu-item-text">
+              <span class="menu-item-title">Public Experience Portal</span>
+              <span class="menu-item-desc">Interactive 3D globe &amp; telemetry showcase</span>
+            </div>
+            <span class="chip chip-neutral" style="font-size:9px;">PORTAL ↗</span>
+          </a>
+
+          <div class="user-menu-divider"></div>
+
+          <!-- Quick Sign Out button -->
+          <a href="auth.html?logout=1" class="user-menu-item user-menu-logout" id="btnTopLogout" title="Sign out of enterprise session" aria-label="Sign out">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--status-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;text-align:center;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <div class="menu-item-text">
+              <span class="menu-item-title" style="color:var(--status-red);font-weight:600;">Sign Out Session</span>
+              <span class="menu-item-desc">Terminate enterprise JWT token</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── PERSISTENT GLOBAL ELV EXCEEDANCE ALERT BANNER ── -->
+  <div id="globalAlertBanner" class="global-alert-banner" style="display:none;align-items:center;justify-content:space-between;padding:10px 24px;background:linear-gradient(90deg, rgba(255,82,82,0.18), rgba(255,82,82,0.06));border-bottom:1px solid rgba(255,82,82,0.35);backdrop-filter:blur(8px);z-index:90;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:rgba(255,82,82,0.2);color:var(--status-red);font-weight:700;font-size:12px;animation:pulse 1.5s infinite;">⚠️</span>
+      <div>
+        <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--status-red);letter-spacing:0.04em;" id="globalAlertTitle">CRITICAL ELV EXCEEDANCE DETECTED</span>
+        <span style="font-size:12px;color:var(--on-surface);margin-left:8px;" id="globalAlertMsg">Unit DU-03 SO₂ currently exceeding statutory permit threshold</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="btnBannerInvestigate" class="btn btn-sm" style="background:var(--status-red);color:#fff;border:none;font-size:11px;padding:5px 14px;cursor:pointer;border-radius:4px;font-weight:600;font-family:var(--font-mono);">Investigate CEMS →</button>
+      <button id="btnBannerDismiss" class="btn btn-sm btn-ghost" style="color:var(--on-surface-variant);font-size:11px;padding:4px 8px;cursor:pointer;" title="Dismiss alert banner">✕</button>
+    </div>
+  </div>
+
+  <!-- ── PAGE CONTENT ── -->
+  <main class="page-wrapper" id="pageWrapper">
+    <!-- Rendered by router -->
+  </main>
+
+</div><!-- /main-content -->
+
+<!-- ══════════════ ALERT PANEL ══════════════ -->
+<aside class="alert-panel" id="alertPanel">
+  <div class="alert-panel-header">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--status-red)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span style="font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--on-surface);">ACTIVE ALERTS</span>
+    </div>
+    <button class="close-btn" id="closeAlerts" aria-label="Close alerts">✕</button>
+  </div>
+  <div style="overflow-y:auto;max-height:calc(100vh - 120px);">
+    <div class="alert-item alert-critical">
+      <span class="alert-icon">⚠</span>
+      <div class="alert-info">
+        <span class="alert-title">SO₂ Exceedance — Duisburg-03</span>
+        <span class="alert-meta">IED 2010/75/EU · 09:31:14 UTC</span>
+      </div>
+      <span class="alert-value" style="color:var(--status-red);">847 mg/m³</span>
+    </div>
+    <div class="alert-item alert-critical">
+      <span class="alert-icon">⚠</span>
+      <div class="alert-info">
+        <span class="alert-title">NOₓ Exceedance — Rotterdam-07</span>
+        <span class="alert-meta">IED 2010/75/EU · 09:18:02 UTC</span>
+      </div>
+      <span class="alert-value" style="color:var(--status-red);">389 mg/m³</span>
+    </div>
+    <div class="alert-item alert-warning">
+      <span class="alert-icon">◆</span>
+      <div class="alert-info">
+        <span class="alert-title">QAL3 Calibration Overdue — MI-02</span>
+        <span class="alert-meta">EN 14181 · Sep 15, 2026</span>
+      </div>
+      <span class="alert-value" style="color:var(--secondary);">+10d</span>
+    </div>
+    <div style="padding:12px 14px;text-align:center;">
+      <button class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;" onclick="window.ClimateSphere.navigateTo('compliance')">View All Filings →</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════ COMMAND PALETTE ══════════════ -->
+<div class="cmd-overlay" id="cmdOverlay" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="cmd-palette" id="cmdPalette">
+    <div class="cmd-input-row">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="cmd-input" id="cmdInput" placeholder="Search pages, facilities, regulations…" autocomplete="off"/>
+      <kbd style="font-family:var(--font-mono);font-size:10px;background:var(--surface-high);border:1px solid var(--border-medium);padding:2px 6px;border-radius:3px;color:var(--on-surface-variant);">ESC</kbd>
+    </div>
+    <div class="cmd-results" id="cmdResults"></div>
+    <div class="cmd-footer">
+      <span class="cmd-key"><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+      <span class="cmd-key"><kbd>↵</kbd> Select</span>
+      <span class="cmd-key"><kbd>ESC</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TOAST NOTIFICATION ══════════════ -->
+<div class="toast" id="toast">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span class="toast-icon">✓</span>
+    <span id="toastMsg">Export complete</span>
+  </div>
+  <div class="export-progress-bar" id="toastProgressBar" style="display:none;">
+    <div class="export-progress-fill" id="toastProgressFill"></div>
+  </div>
+</div>
+
+<!-- ══════════════ INACTIVITY SCREEN AUTO-LOCK MODAL (IEC 62443) ══════════════ -->
+<div class="lock-screen-overlay" id="lockScreenOverlay" role="dialog" aria-modal="true" aria-label="Terminal Locked">
+  <div class="lock-screen-card">
+    <div style="width:52px;height:52px;border-radius:50%;background:rgba(70,246,190,0.1);border:1px solid rgba(70,246,190,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;">
+      🔒
+    </div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--primary);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Terminal Secured</div>
+    <h2 style="font-size:18px;font-weight:700;color:var(--on-surface);margin-bottom:6px;">Control Room Session Locked</h2>
+    <p style="font-size:12px;color:var(--on-surface-variant);line-height:1.5;margin-bottom:20px;">
+      Terminal locked per IEC 62443 cyber-security policy. Re-authenticate with your operator credentials to resume telemetry monitoring.
+    </p>
+    <form id="lockScreenForm" onsubmit="return false;" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="text-align:left;">
+        <label style="font-family:var(--font-mono);font-size:10px;color:var(--on-surface-dim);text-transform:uppercase;display:block;margin-bottom:4px;">Operator Password / PIN</label>
+        <input type="password" id="lockScreenPassword" placeholder="Enter password to unlock…" style="width:100%;padding:10px 12px;background:var(--surface-container);border:1px solid var(--border-medium);border-radius:var(--radius-sm);color:var(--on-surface);font-size:13px;outline:none;" autocomplete="current-password" required/>
+      </div>
+      <div id="lockScreenError" style="display:none;font-size:11px;color:var(--status-red);font-family:var(--font-mono);text-align:left;">Invalid password</div>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button type="submit" id="btnLockScreenUnlock" class="btn btn-primary" style="flex:1;justify-content:center;">Unlock Terminal</button>
+        <button type="button" id="btnLockScreenWebauthn" class="btn btn-secondary" title="Unlock via WebAuthn Security Key">🔑 FIDO2</button>
+      </div>
+      <div style="margin-top:10px;">
+        <a href="auth.html?logout=1" style="font-size:11px;color:var(--on-surface-dim);text-decoration:none;">Switch Account / Sign Out →</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════ OFFICIAL STATUTORY CERTIFICATE OF AUTHENTICITY MODAL ══════════════ -->
+<div class="cmd-overlay" id="certifiedModalOverlay" role="dialog" aria-modal="true" aria-label="Official Certificate of Authenticity">
+  <div class="cmd-palette" style="max-width:760px;background:var(--surface-container);border:1px solid var(--primary);border-radius:var(--radius-md);box-shadow:0 24px 64px rgba(0,0,0,0.8),0 0 24px rgba(0,245,212,0.2);overflow:hidden;">
+    <div style="background:linear-gradient(135deg, rgba(0,245,212,0.14), rgba(255,180,38,0.08));border-bottom:1px solid var(--border-medium);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:26px;">🇪🇺</span>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--primary);letter-spacing:0.1em;text-transform:uppercase;">Official European Union Environmental Intelligence</div>
+          <div style="font-size:16px;font-weight:700;color:var(--on-surface);">Statutory Certificate of Data Authenticity</div>
+        </div>
+      </div>
+      <button id="btnCloseCertifiedModal" class="btn btn-ghost btn-sm" style="font-size:16px;cursor:pointer;" aria-label="Close modal">✕</button>
+    </div>
+
+    <div id="certifiedModalBody" style="padding:20px;max-height:68vh;overflow-y:auto;display:flex;flex-direction:column;gap:16px;">
+      <div style="display:flex;align-items:center;justify-content:center;padding:40px;color:var(--on-surface-variant);font-family:var(--font-mono);font-size:12px;">
+        Loading certified EU Copernicus CAMS telemetry & Merkle audit proof...
+      </div>
+    </div>
+
+    <div style="background:var(--surface-lowest);border-top:1px solid var(--border-subtle);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--on-surface-dim);">Hardware Proof: TPM 2.0 Enclave · SHA-256 Merkle Ledger</span>
+      <div style="display:flex;gap:8px;">
+        <button id="btnSyncCertifiedLive" class="btn btn-secondary btn-sm" style="font-size:11px;cursor:pointer;">🔄 Force Live Re-Sync</button>
+        <button id="btnDownloadCertificateJson" class="btn btn-primary btn-sm" style="font-size:11px;cursor:pointer;">⬇ Download Official JSON Certificate</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<!-- Enterprise Application Module Bundle -->
+<script type="module" src="js/main.js"></script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
+      }).catch((err) => {
+        console.warn('[PWA] ServiceWorker registration notice:', err.message);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>

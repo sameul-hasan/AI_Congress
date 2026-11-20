@@ -1,0 +1,97 @@
+replicaCount: 2
+
+image:
+  gateway:
+    repository: climatesphere/edge-gateway
+    tag: "4.8.0"
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: climatesphere/frontend
+    tag: "4.8.0"
+    pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  httpPort: 80
+  httpsPort: 443
+  gatewayPort: 8089
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: climatesphere-gateway
+  hosts:
+    - host: cems.climatesphere.internal
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api
+          pathType: Prefix
+          service: gateway
+        - path: /ws
+          pathType: Prefix
+          service: gateway
+        - path: /events
+          pathType: Prefix
+          service: gateway
+  tls:
+    - secretName: climatesphere-tls-cert
+      hosts:
+        - cems.climatesphere.internal
+
+env:
+  nodeEnv: production
+  defaultTenantId: tenant-eu-energy
+  defaultFacilityId: DU-03
+  jwtExpirationSec: "3600"
+
+secrets:
+  jwtSecret: "cs_enterprise_jwt_super_secret_signing_key_production_2026"
+  dbPassword: "cs_dev_cluster_2026"
+
+config:
+  logLevel: info
+  corsOrigin: "https://cems.climatesphere.internal"
+  simulationIntervalMs: "1000"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 80
+
+networkPolicy:
+  enabled: true
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+timescaledb:
+  enabled: true
+  persistence:
+    size: 250Gi
+    storageClass: gp3-ebs
+
+resources:
+  gateway:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  frontend:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+

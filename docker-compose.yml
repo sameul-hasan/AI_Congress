@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # ── 1. Production Reverse Proxy & Frontend Web Application ──
+  frontend:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    container_name: climatesphere-frontend
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+      - "${HTTPS_PORT:-8443}:443"
+    depends_on:
+      edge-gateway:
+        condition: service_healthy
+    networks:
+      - climatesphere-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ── 2. Edge Telemetry Gateway Microservice & Ingestion Engine ──
+  edge-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: climatesphere-edge-gateway
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${EDGE_PORT:-8089}:8089"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - EDGE_PORT=${EDGE_PORT:-8089}
+      - EDGE_HOST=0.0.0.0
+      - DATABASE_URL=postgres://${POSTGRES_USER:-climatesphere}:${POSTGRES_PASSWORD:-cs_dev_cluster_2026}@pgbouncer:6432/${POSTGRES_DB:-climatesphere_tsdb}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set in .env — never use a default in production}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:8080}
+      - SIMULATION_INTERVAL_MS=${SIMULATION_INTERVAL_MS:-1000}
+      - MQTT_BROKER_URL=${MQTT_BROKER_URL:-}
+      - MQTT_USERNAME=${MQTT_USERNAME:-}
+      - MQTT_PASSWORD=${MQTT_PASSWORD:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - REDIS_URL=${REDIS_URL:-redis://valkey:6379}
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    networks:
+      - climatesphere-net
+    volumes:
+      - gateway-data:/app/server/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8089/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ── 3. TimescaleDB Industrial Time-Series Database (IED Annex V) ──
+  timescaledb:
+    image: timescale/timescaledb:2.14.2-pg16
+    container_name: climatesphere-timescaledb
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-climatesphere}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-cs_dev_cluster_2026}
+      - POSTGRES_DB=${POSTGRES_DB:-climatesphere_tsdb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - tsdata:/var/lib/postgresql/data
+      - ./server/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
+    networks:
+      - climatesphere-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-climatesphere} -d ${POSTGRES_DB:-climatesphere_tsdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ── 4. PgBouncer High-Concurrency Transaction Connection Pooler ──
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.22.0
+    container_name: climatesphere-pgbouncer
+    restart: unless-stopped
+    environment:
+      - DB_USER=${POSTGRES_USER:-climatesphere}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-cs_dev_cluster_2026}
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-climatesphere_tsdb}
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=200
+      - DEFAULT_POOL_SIZE=50
+      - RESERVE_POOL_SIZE=10
+      - AUTH_TYPE=scram-sha-256
+    ports:
+      - "6432:6432"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - climatesphere-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 6432 -U ${POSTGRES_USER:-climatesphere}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ── 5. Valkey / Redis Distributed State Engine & Token Revocation Cache ──
+  valkey:
+    image: valkey/valkey:7.2.5-alpine
+    container_name: climatesphere-valkey
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey-data:/data
+    networks:
+      - climatesphere-net
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ── 6. Certbot Automated SSL/TLS 60-Day Renewal Sidecar Daemon ──
+  certbot:
+    image: certbot/certbot:v2.10.0
+    container_name: climatesphere-certbot
+    restart: unless-stopped
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - certbot-webroot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;'"
+    networks:
+      - climatesphere-net
+
+networks:
+  climatesphere-net:
+    driver: bridge
+
+volumes:
+  tsdata:
+    driver: local
+  gateway-data:
+    driver: local
+  valkey-data:
+    driver: local
+  certbot-etc:
+    driver: local
+  certbot-var:
+    driver: local
+  certbot-webroot:
+    driver: local

@@ -1,0 +1,63 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-network-policy
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow incoming traffic to frontend HTTP
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.httpPort | default 80 }}
+    # Allow internal communication between frontend and edge-gateway
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: frontend
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.gatewayPort | default 8089 }}
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow communication to TimescaleDB and PgBouncer
+    - to:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values: ["database", "timescaledb", "pgbouncer"]
+      ports:
+        - protocol: TCP
+          port: 5432
+        - protocol: TCP
+          port: 6432
+    # Allow communication to Valkey / Redis
+    - to:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values: ["cache", "valkey", "redis"]
+      ports:
+        - protocol: TCP
+          port: 6379
+{{- end }}

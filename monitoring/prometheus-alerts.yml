@@ -1,0 +1,56 @@
+# ══════════════════════════════════════════════════════════════════
+# ClimateSphere AI — Enterprise Prometheus Alerting Rules
+# Directive 2010/75/EU (IED Annex V) & DIN EN 14181 QAL3 Monitoring
+# ══════════════════════════════════════════════════════════════════
+
+groups:
+  - name: climatesphere_cems_alerts
+    rules:
+      - alert: CemsElvCriticalExceedance
+        expr: climatesphere_elv_exceedance_events_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          jurisdiction: IED_2010_75_EU
+        annotations:
+          summary: "CEMS Emission Limit Value (ELV) Critical Exceedance"
+          description: "Facility emission limit breached. Statutory 24-hour competent authority notification timer active per IED Art. 18."
+
+      - alert: FieldbusPollingTimeoutSpike
+        expr: rate(climatesphere_fieldbus_polls_total[5m]) == 0
+        for: 2m
+        labels:
+          severity: warning
+          protocol: MODBUS_OPCUA
+        annotations:
+          summary: "Industrial Fieldbus Ingestion Stalled"
+          description: "No Modbus or OPC-UA register polls recorded in the last 2 minutes. Physical CEMS analyzer communication link may be down."
+
+      - alert: IngestionTelemetryPacketDrop
+        expr: rate(climatesphere_telemetry_packets_total[5m]) < 0.5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High-Frequency 1 Hz Telemetry Ingestion Below Nominal Rate"
+          description: "Ingestion packet rate dropped below 0.5 Hz. Check network jitter or store-and-forward buffer backpressure."
+
+      - alert: TimescaleDbQueryLatencyElevated
+        expr: climatesphere_db_query_duration_seconds > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: DATABASE
+        annotations:
+          summary: "Database Query Latency Elevated During Statutory Rollup"
+          description: "TimescaleDB query latency exceeds 500ms. Check hypertable chunk compression and buffer cache utilization."
+
+      - alert: Qal3DriftApproachingActionLimit
+        expr: climatesphere_qal3_max_drift_pct >= 2.0
+        for: 2m
+        labels:
+          severity: critical
+          standard: DIN_EN_14181
+        annotations:
+          summary: "DIN EN 14181 QAL3 Zero/Span Drift Action Limit Exceeded"
+          description: "Continuous zero or span drift exceeded the statutory +/-2.0% full-scale action limit. Automatic calibration or maintenance lock required."

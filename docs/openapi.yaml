@@ -1,0 +1,2226 @@
+openapi: 3.1.0
+info:
+  title: ClimateSphere AI — Industrial Edge Gateway & Telemetry API
+  description: >
+    Enterprise environmental compliance, CEMS continuous telemetry, DIN EN 14181 QAL3 quality assurance,
+    and cryptographic Merkle audit API under EU Industrial Emissions Directive (IED 2010/75/EU) and CSRD ESRS E1.
+  version: 4.8.0
+  contact:
+    name: ClimateSphere AI Engineering Team
+    email: engineering@climatesphere.ai
+
+servers:
+  - url: http://localhost:8089
+    description: Local Edge Gateway Microservice
+  - url: https://localhost:8443
+    description: Production Nginx TLS Reverse Proxy
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: RFC 7519 HMAC-SHA256 JSON Web Token obtained from /api/auth/token
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: HEALTHY
+        service:
+          type: string
+        version:
+          type: string
+        protocols:
+          type: array
+          items:
+            type: string
+        uptimeSec:
+          type: integer
+
+    TokenRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: operator@climatesphere.ai
+        password:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, ENGINEER, OPERATOR, AUDITOR]
+          default: OPERATOR
+
+    TokenResponse:
+      type: object
+      properties:
+        tokenType:
+          type: string
+          example: Bearer
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          example: 3600
+        claims:
+          type: object
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+
+    TelemetryPacket:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        facilityId:
+          type: string
+          example: DU-03
+        sequence:
+          type: integer
+        channels:
+          type: object
+          properties:
+            SO2:
+              $ref: '#/components/schemas/ChannelData'
+            NOx:
+              $ref: '#/components/schemas/ChannelData'
+            CO:
+              $ref: '#/components/schemas/ChannelData'
+            O2:
+              $ref: '#/components/schemas/ChannelData'
+
+    ChannelData:
+      type: object
+      properties:
+        val:
+          type: number
+        normVal:
+          type: number
+        units:
+          type: string
+          example: mg/Nm3
+        refO2:
+          type: number
+          example: 6.0
+        status:
+          type: string
+          enum: [COMPLIANT, WARNING, BREACH]
+
+    QAL3Calibration:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+        facilityId:
+          type: string
+        parameter:
+          type: string
+        zeroDrift:
+          type: number
+        spanDrift:
+          type: number
+        precisionSd:
+          type: number
+        cusumValue:
+          type: number
+        status:
+          type: string
+          enum: [PASS, ACTION_REQUIRED]
+        gasBottleLot:
+          type: string
+        gasCertNumber:
+          type: string
+        operator:
+          type: string
+
+    AuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+        actor:
+          type: string
+        action:
+          type: string
+        facilityId:
+          type: string
+        details:
+          type: string
+        prevHash:
+          type: string
+        merkleHash:
+          type: string
+
+    AdminUser:
+      type: object
+      properties:
+        username:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, ENGINEER, OPERATOR, AUDITOR]
+        title:
+          type: string
+        tenantId:
+          type: string
+        status:
+          type: string
+          example: ACTIVE
+
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - password
+        - role
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, ENGINEER, OPERATOR, AUDITOR]
+        title:
+          type: string
+        tenantId:
+          type: string
+
+    WebhookSubscription:
+      type: object
+      required:
+        - url
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+        secret:
+          type: string
+
+    IncidentRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+        facilityId:
+          type: string
+        severity:
+          type: string
+          enum: [CRITICAL, MAJOR, MINOR]
+        status:
+          type: string
+          enum: [OPEN, INVESTIGATING, RESOLVED]
+        pollutant:
+          type: string
+        details:
+          type: string
+
+    AssetHierarchy:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        tenantName:
+          type: string
+        facilities:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              region:
+                type: string
+              status:
+                type: string
+              analyzers:
+                type: array
+                items:
+                  type: string
+
+    CarbonInventory:
+      type: object
+      properties:
+        timestamp:
+          type: string
+        reportingPeriod:
+          type: string
+        scope1:
+          type: object
+        scope2:
+          type: object
+        scope3:
+          type: object
+        totalKtCo2e:
+          type: number
+
+paths:
+  /health:
+    get:
+      summary: Health & Protocol Diagnostic Probe
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/auth/token:
+    post:
+      summary: Request HMAC-SHA256 JWT Access & Refresh Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: Token pair issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Invalid request payload
+
+  /api/auth/verify:
+    get:
+      summary: Validate JWT and Inspect Claims
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token is valid
+        '401':
+          description: Invalid, expired, or revoked token
+
+  /api/auth/refresh:
+    post:
+      summary: Silent Access Token Renewal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: New access and refresh token pair
+        '401':
+          description: Refresh token invalid or expired
+
+  /api/auth/revoke:
+    post:
+      summary: Invalidate an Active Session Token
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Token revoked successfully
+        '401':
+          description: Unauthorized
+
+  /api/auth/register:
+    post:
+      summary: Self-Service Operator Registration
+      description: Create a new plant user account with Scrypt password hashing and automatic JWT issuance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, email, password]
+              properties:
+                firstName:
+                  type: string
+                  example: Johann
+                lastName:
+                  type: string
+                  example: Schmidt
+                email:
+                  type: string
+                  format: email
+                  example: j.schmidt@vattenfall.de
+                password:
+                  type: string
+                  format: password
+                  example: EnterprisePassword2026!
+                role:
+                  type: string
+                  enum: [ADMIN, ENGINEER, OPERATOR, AUDITOR]
+                  default: ENGINEER
+                organisation:
+                  type: string
+                  example: Vattenfall Europe
+      responses:
+        '201':
+          description: User created and authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ACCOUNT_CREATED
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  role:
+                    type: string
+        '400':
+          description: Missing required fields or password policy violation
+        '409':
+          description: Account with this email already exists
+
+  /api/auth/google/init:
+    get:
+      summary: Initialize Server-Side Google OAuth 2.0 PKCE Flow
+      description: Returns OAuth authorization URL or fallback indicator if server credentials are unset
+      responses:
+        '200':
+          description: Google OAuth initialization payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authUrl:
+                    type: string
+                  state:
+                    type: string
+                  status:
+                    type: string
+
+  /api/auth/google/callback:
+    post:
+      summary: Process Google OAuth 2.0 Authorization Code Exchange
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                state:
+                  type: string
+      responses:
+        '200':
+          description: OAuth code exchanged for JWT session
+        '400':
+          description: Invalid authorization code
+
+  /api/auth/password-reset:
+    post:
+      summary: Request Account Password Recovery Reset Link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Password reset request queued securely without user enumeration
+
+  /api/auth/sso/login:
+    get:
+      summary: Initiate Federated Enterprise Single Sign-On (OIDC/SAML)
+      parameters:
+        - name: provider
+          in: query
+          description: Federated IdP provider (microsoft_entra, okta, ping_identity, keycloak)
+          schema:
+            type: string
+            enum: [microsoft_entra, azure_ad, okta, ping_identity, keycloak]
+            default: microsoft_entra
+        - name: tenantId
+          in: query
+          description: Multi-tenant partition ID
+          schema:
+            type: string
+            default: tenant-eu-energy
+      responses:
+        '200':
+          description: SSO authorization payload with state, nonce, PKCE challenge, and redirect URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: REDIRECT_READY
+                  provider:
+                    type: string
+                  authorizationUrl:
+                    type: string
+                  state:
+                    type: string
+                  codeChallenge:
+                    type: string
+
+  /api/auth/sso/callback:
+    post:
+      summary: Exchange Federated Authorization Code for Platform JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                state:
+                  type: string
+                provider:
+                  type: string
+                role:
+                  type: string
+      responses:
+        '200':
+          description: Authenticated session with RFC 7519 JWT and user persona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Invalid or expired SSO state parameter
+
+  /api/telemetry/fleet:
+    get:
+      summary: Fleet-Wide Real-Time CEMS Telemetry Snapshot
+      responses:
+        '200':
+          description: Current telemetry across all 5 facilities
+
+  /api/telemetry/history:
+    get:
+      summary: Store-and-Forward Replay Buffer
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Buffered historical packets
+
+  /api/telemetry/ingest:
+    post:
+      summary: Ingest Physical CEMS Readings with Quality Flagging
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                facilityId:
+                  type: string
+                so2:
+                  type: number
+                nox:
+                  type: number
+                o2:
+                  type: number
+      responses:
+        '201':
+          description: Packet successfully ingested
+        '401':
+          description: Unauthorized
+        '413':
+          description: Request body too large (max 1 MB)
+
+  /api/telemetry/rollups:
+    get:
+      summary: Statutory 15-Minute Rolling Average Rollups (IED Art 15)
+      parameters:
+        - name: facility
+          in: query
+          schema:
+            type: string
+            default: DU-03
+        - name: window
+          in: query
+          schema:
+            type: integer
+            default: 15
+      responses:
+        '200':
+          description: Calculated statutory averages
+
+  /api/qal3/calibrations:
+    get:
+      summary: Retrieve DIN EN 14181 QAL3 Calibration Ledger
+      responses:
+        '200':
+          description: List of calibration records
+    post:
+      summary: Record Certified QAL3 Drift Assessment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QAL3Calibration'
+      responses:
+        '201':
+          description: Calibration recorded
+        '401':
+          description: Unauthorized
+        '403':
+          description: Requires TRIGGER_CALIBRATION permission
+
+  /api/audit/logs:
+    get:
+      summary: Query Hash-Chained Audit Ledger
+      responses:
+        '200':
+          description: Array of audit entries
+    post:
+      summary: Append Immutable Audit Record to Merkle Chain
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                facilityId:
+                  type: string
+                details:
+                  type: string
+      responses:
+        '201':
+          description: Audit log persisted and chained
+        '401':
+          description: Unauthorized
+
+  /api/audit/verify:
+    get:
+      summary: Verify Cryptographic Merkle Root Integrity
+      responses:
+        '200':
+          description: Tamper verification result with root hash
+
+  /api/alerts:
+    get:
+      summary: List Active Exceedance Alerts
+      responses:
+        '200':
+          description: Current alert list
+    post:
+      summary: Acknowledge Active Alert
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alertId:
+                  type: string
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Alert acknowledged
+        '401':
+          description: Unauthorized
+
+  /api/incidents:
+    get:
+      summary: Query Historical & Active Statutory Exceedance Incidents
+      responses:
+        '200':
+          description: Incident list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IncidentRecord'
+    post:
+      summary: Acknowledge or Resolve Environmental Incident
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - incidentId
+              properties:
+                incidentId:
+                  type: string
+                resolutionNote:
+                  type: string
+      responses:
+        '200':
+          description: Incident updated
+        '401':
+          description: Unauthorized
+
+  /api/assets/hierarchy:
+    get:
+      summary: Enterprise Multi-Tenant Facility, Unit & Analyzer Asset Hierarchy
+      responses:
+        '200':
+          description: Hierarchical asset tree
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetHierarchy'
+
+  /api/carbon/inventory:
+    get:
+      summary: Real-Time Scope 1, 2, 3 GHG Carbon Accounting & Traceability Lineage
+      responses:
+        '200':
+          description: Verified GHG inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarbonInventory'
+
+  /api/protocols/modbus/read:
+    get:
+      summary: Modbus TCP/RTU Fieldbus Register Driver
+      parameters:
+        - name: unitId
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: address
+          in: query
+          schema:
+            type: integer
+            default: 40001
+        - name: count
+          in: query
+          schema:
+            type: integer
+            default: 4
+      responses:
+        '200':
+          description: Decoded Modbus holding registers
+
+  /api/protocols/opcua:
+    get:
+      summary: OPC-UA (IEC 62541) Node Address Space
+      responses:
+        '200':
+          description: Active CEMS nodes and quality status
+
+  /api/protocols/mqtt:
+    get:
+      summary: MQTT Sparkplug B Topic & Driver Status
+      responses:
+        '200':
+          description: MQTT metrics and broker state
+
+  /api/protocols/fieldbus/config:
+    get:
+      summary: List Configured Physical Industrial Fieldbus Drivers
+      responses:
+        '200':
+          description: Physical Modbus TCP / OPC-UA master hardware endpoints
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  fieldbusEndpoints:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        facilityId:
+                          type: string
+                        driverType:
+                          type: string
+                        host:
+                          type: string
+                        port:
+                          type: integer
+                        unitId:
+                          type: integer
+
+  /api/protocols/fieldbus/poll:
+    post:
+      summary: Trigger Live Hardware Socket Register Poll (Modbus TCP)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                facilityId:
+                  type: string
+                host:
+                  type: string
+                port:
+                  type: integer
+                unitId:
+                  type: integer
+                startAddr:
+                  type: integer
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Live physical register frame and decoded pollutant channels
+        '500':
+          description: Fieldbus TCP socket error
+
+  /api/ai/query:
+    post:
+      summary: Google Gemini 2.0 Flash Regulatory AI Proxy
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: X-CS-ApiKey
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Generated AI response
+        '401':
+          description: Authentication required
+        '503':
+          description: Server GEMINI_API_KEY missing
+
+  /api/ai/approve-action:
+    post:
+      summary: Human-in-the-Loop AI Recommendation Approval
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                actionId:
+                  type: string
+                actionType:
+                  type: string
+                facilityId:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Action approved and logged to Merkle audit chain
+        '401':
+          description: Unauthorized
+
+  /api/admin/users:
+    get:
+      summary: Retrieve Active Platform Operators & RBAC Roles
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of registered users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminUser'
+        '401':
+          description: Unauthorized
+
+  /api/admin/users/create:
+    post:
+      summary: Provision New Operator Account with RBAC Role
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+        '400':
+          description: Invalid input or user already exists
+        '401':
+          description: Unauthorized (Requires Admin role)
+
+  /api/admin/users/reset-password:
+    post:
+      summary: Administrative Password Reset
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - newPassword
+              properties:
+                username:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: Password reset successfully
+        '401':
+          description: Unauthorized
+
+  /api/admin/secrets/status:
+    get:
+      summary: Inspect Cloud Secret Vault Engine Health & Active Keys
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Vault provider status, sync timestamp, and managed key names
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  provider:
+                    type: string
+                  vaultAddress:
+                    type: string
+                  lastSync:
+                    type: string
+                  managedKeys:
+                    type: array
+                    items:
+                      type: string
+                  status:
+                    type: string
+
+  /api/notifications/webhooks:
+    get:
+      summary: List Registered Webhook Alert Subscriptions
+      responses:
+        '200':
+          description: Webhook subscriptions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookSubscription'
+    post:
+      summary: Register Outbound Webhook Integration (Slack, PagerDuty, MS Teams)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSubscription'
+      responses:
+        '201':
+          description: Webhook subscription active
+        '400':
+          description: Invalid URL (must start with https://)
+
+  /metrics:
+    get:
+      summary: Prometheus / OpenMetrics System & Industrial Telemetry Observability
+      responses:
+        '200':
+          description: OpenMetrics Prometheus metrics plain-text scrape format
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/protocols/fieldbus/write:
+    post:
+      summary: Write Modbus Fieldbus Coil or Register (FC 05, 06, 16)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                facilityId:
+                  type: string
+                functionCode:
+                  type: integer
+                  enum: [5, 6, 16]
+                address:
+                  type: integer
+                value:
+                  type: integer
+                values:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: Fieldbus write acknowledged
+        '400':
+          description: Invalid parameters
+        '401':
+          description: Unauthorized
+
+  /api/protocols/fieldbus/rtu/poll:
+    get:
+      summary: Physical RS-485 Modbus RTU Serial Register Poll with CRC-16 Verification
+      parameters:
+        - name: facilityId
+          in: query
+          schema:
+            type: string
+        - name: unitId
+          in: query
+          schema:
+            type: integer
+        - name: startAddr
+          in: query
+          schema:
+            type: integer
+        - name: quantity
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Raw and decoded Modbus RTU frame with verified CRC-16
+
+  /api/admin/security/mtls-status:
+    get:
+      summary: IEC 62443 Zero-Trust mTLS & Client Certificate Verification Status
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Operational mTLS status
+
+  /api/admin/cluster/status:
+    get:
+      summary: Multi-Node Distributed Cluster & State Engine Status
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Distributed Redis / Memory state engine status
+
+  /api/admin/migrations:
+    get:
+      summary: Reversible Database Migrations Status
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of applied and pending migrations
+    post:
+      summary: Apply or Rollback Database Migrations
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [APPLY, ROLLBACK]
+                targetVersion:
+                  type: string
+      responses:
+        '200':
+          description: Migration transaction executed
+
+  /api/protocols/serial/status:
+    get:
+      summary: Physical OS RS-485 Serial Port Status
+      responses:
+        '200':
+          description: Physical UART binding status and baud rate
+
+  /api/protocols/serial/open:
+    post:
+      summary: Bind and Open Physical OS SerialPort UART
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                path:
+                  type: string
+                  example: /dev/ttyUSB0
+                baudRate:
+                  type: integer
+                  example: 19200
+      responses:
+        '200':
+          description: SerialPort binding opened
+
+  /api/protocols/opcua/subscription/create:
+    post:
+      summary: Create Continuous OPC-UA Push Subscription (IEC 62541-4)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                facilityId:
+                  type: string
+                publishingInterval:
+                  type: integer
+                nodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Continuous subscription initialized
+
+  /api/protocols/opcua/subscription/publish:
+    get:
+      summary: Retrieve Next Asynchronous PublishNotification in Subscription Loop
+      parameters:
+        - name: subscriptionId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Publish notification message with sequence number
+
+  /api/protocols/grid/dnp3:
+    get:
+      summary: DNP3 (IEEE 1815) Grid Dispatcher Frame & Object Groups
+      responses:
+        '200':
+          description: DNP3 frame with sync 0x0564, Group 30 Analog and Group 1 Binary inputs
+
+  /api/protocols/grid/iec104:
+    get:
+      summary: IEC 60870-5-104 Server Telemetry (ASDU Type 13)
+      responses:
+        '200':
+          description: IEC 104 APCI frame and ASDU Type 13 floating point telemetry
+
+  /api/audit/hsm/status:
+    get:
+      summary: Hardware Security Module (HSM) / TPM 2.0 Engine Status
+      responses:
+        '200':
+          description: FIPS 140-2 Level 3 attestation and TPM 2.0 public key thumbprint
+
+  /api/audit/hsm/anchor:
+    post:
+      summary: Anchor Merkle Root in TPM 2.0 NVRAM with RSA-PSS Signature
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                merkleRoot:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '200':
+          description: Merkle root sealed in TPM 2.0 hardware
+
+  /api/auth/mfa/setup:
+    post:
+      summary: Initiate RFC 6238 TOTP Multi-Factor Enrollment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: TOTP secret, backup codes, and otpauth URI
+
+  /api/auth/mfa/verify:
+    post:
+      summary: Verify 6-Digit TOTP Token and Activate MFA
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                secret:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '200':
+          description: MFA activated successfully
+
+  /api/compliance/epa/part75/substitute:
+    post:
+      summary: US EPA 40 CFR Part 75 Subpart D Missing Data Substitution
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                monitorAvailabilityPct:
+                  type: number
+                hoursOffline:
+                  type: integer
+                historicalValues:
+                  type: array
+                  items:
+                    type: number
+      responses:
+        '200':
+          description: Substituted value and tier classification
+
+  /api/compliance/epa/part75/rata:
+    post:
+      summary: Relative Accuracy Test Audit (RATA) & Bias Adjustment Factor (BAF)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pairedRuns:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: Relative accuracy percentage and BAF factor
+
+  /api/compliance/ast/calculate:
+    post:
+      summary: DIN EN 14181 Clause 9 Annual Surveillance Test (AST) Variability Test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                runs:
+                  type: array
+                elv:
+                  type: number
+                pollutant:
+                  type: string
+      responses:
+        '200':
+          description: AST variability evaluation (sD <= 1.15 * sigma0 * kv)
+
+  /api/compliance/bmschv/hmw:
+    get:
+      summary: German 13. BImSchV & TA Luft 30-Minute Valid Half-Hour (HMW) Grid
+      parameters:
+        - name: facilityId
+          in: query
+          schema:
+            type: string
+        - name: date
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 48-slot half-hour compliance grid and daily mean value (TMW)
+
+  /api/compliance/epa/part60/cga:
+    post:
+      summary: US EPA 40 CFR Part 60 Appendix F Cylinder Gas Audit (CGA)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pollutant:
+                  type: string
+                spanPpm:
+                  type: number
+                auditPoints:
+                  type: array
+      responses:
+        '200':
+          description: Cylinder Gas Audit accuracy and pass/fail status
+
+  /api/compliance/epa/part60/raa:
+    post:
+      summary: US EPA 40 CFR Part 60 Appendix F Relative Accuracy Audit (RAA)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pollutant:
+                  type: string
+                standardElv:
+                  type: number
+                pairedRuns:
+                  type: array
+      responses:
+        '200':
+          description: Relative Accuracy Audit evaluation against standard
+
+  /api/auth/webauthn/register/options:
+    post:
+      summary: Generate WebAuthn FIDO2 Public Key Credential Registration Options
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Registration challenge and Relying Party parameters
+
+  /api/auth/webauthn/register/verify:
+    post:
+      summary: Verify WebAuthn Credential Attestation and Register Key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                credentialId:
+                  type: string
+      responses:
+        '200':
+          description: Hardware security key registered
+
+  /api/auth/webauthn/authenticate/options:
+    post:
+      summary: Generate WebAuthn FIDO2 Authentication Challenge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Authentication challenge
+
+  /api/auth/webauthn/authenticate/verify:
+    post:
+      summary: Verify WebAuthn Assertion and Issue JWT Session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                credentialId:
+                  type: string
+      responses:
+        '200':
+          description: Authenticated session tokens
+
+  /api/notifications/webhooks/dlq:
+    get:
+      summary: List Webhook Dead-Letter Queue (DLQ) Entries
+      responses:
+        '200':
+          description: Queued failed webhook events awaiting retry
+
+  /api/notifications/webhooks/dlq/retry:
+    post:
+      summary: Re-attempt Delivery of a Dead-Letter Queue Webhook
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Webhook dispatch re-attempted
+
+  /api/compliance/bmschv/17:
+    get:
+      summary: German 17. BImSchV (Waste Incineration) 10-Minute Sliding Window & Mercury/TOC Compliance
+      parameters:
+        - name: facilityId
+          in: query
+          schema:
+            type: string
+        - name: date
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dual-rule compliance evaluation (100% max ELV, 97% strict ELV)
+
+  /api/compliance/epa/part75/appendix-de:
+    post:
+      summary: US EPA 40 CFR Part 75 Appendix D (Fuel Flowmeter) & Appendix E (NOx Correlation) Evaluation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                unitId:
+                  type: string
+                fuelType:
+                  type: string
+                flowRateScfh:
+                  type: number
+                grossCalorificValueBtuScf:
+                  type: number
+      responses:
+        '200':
+          description: Heat input, SO2 mass emissions, and Appendix E NOx correlation evaluation
+
+  /api/compliance/cbam/definitive:
+    post:
+      summary: EU CBAM Definitive Phase (2026–2034) Surrender & Certificate Liability Assessment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                importTonnage:
+                  type: number
+                cnCode:
+                  type: string
+                embeddedScope1Tco2e:
+                  type: number
+                embeddedScope2Tco2e:
+                  type: number
+                originCountry:
+                  type: string
+                originCarbonPriceEurPerTonne:
+                  type: number
+                euaAuctionPriceEur:
+                  type: number
+      responses:
+        '200':
+          description: Certificate surrender obligation with Article 9 origin carbon price deduction
+
+  /api/ai/simulate-dispatch:
+    post:
+      summary: AI Action Execution Digital Twin Safety Sandbox Simulation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                actionType:
+                  type: string
+                targetSetpoint:
+                  type: number
+                facilityId:
+                  type: string
+      responses:
+        '200':
+          description: Feasibility score and physical equipment constraint validation
+
+  /api/protocols/opcua/secure-channel:
+    get:
+      summary: OPC-UA IEC 62541 Binary Secure Channel (Basic256Sha256 / SignAndEncrypt) Handshake
+      responses:
+        '200':
+          description: X.509 certificate exchange and secure channel token
+
+  /api/protocols/serial/watchdog:
+    get:
+      summary: Industrial SerialPort udev Hotplug Watchdog & Reconnection Status
+      responses:
+        '200':
+          description: Watchdog monitor status and reconnection statistics
+
+  /api/compliance/mcerts/validation:
+    post:
+      summary: UK Environment Agency MCERTS CEMS Compliance Validation (TGN M2 / BS EN 15267-3)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                facilityId:
+                  type: string
+                  example: DU-03
+                analyzerModel:
+                  type: string
+                  example: FTIR Multi-Gas CEMS Model CS-9000
+                mcertsCertificate:
+                  type: string
+                  example: Sira MC050066/12
+                certifiedSpan:
+                  type: number
+                  example: 200.0
+                maxLinearityResidualPct:
+                  type: number
+                  example: 1.45
+                zeroDriftPct:
+                  type: number
+                  example: 0.85
+                spanDriftPct:
+                  type: number
+                  example: 1.10
+                responseTimeT90Sec:
+                  type: number
+                  example: 145.0
+                expandedUncertaintyPct:
+                  type: number
+                  example: 8.65
+                operationalAvailabilityPct:
+                  type: number
+                  example: 98.85
+      responses:
+        '200':
+          description: MCERTS conformity determination and uncertainty budget
+
+  /api/compliance/csrd/esrs-e1:
+    post:
+      summary: CSRD / ESRS E1 Quantitative Double Materiality & Scope 1-3 GHG Assessment (Delegated Regulation (EU) 2023/2772)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tenantId:
+                  type: string
+                  example: tenant-eu-energy
+                reportingYear:
+                  type: integer
+                  example: 2025
+                turnoverMillionsEur:
+                  type: number
+                  example: 145.0
+                fuelCombustionTons:
+                  type: number
+                  example: 45000.0
+                gridElectricityMWh:
+                  type: number
+                  example: 42000.0
+                renewablePpaMWh:
+                  type: number
+                  example: 18000.0
+      responses:
+        '200':
+          description: Quantitative GHG inventory, intensity ratio, and double materiality assessment
+
+  /api/compliance/eu-ets/mrv:
+    post:
+      summary: EU ETS MRV Annual Emissions Return & Verifier Assurance (Regulation (EU) 2018/2066)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                installationId:
+                  type: string
+                  example: DE-ETS-0982-DU-03
+                reportingYear:
+                  type: integer
+                  example: 2025
+                installationCategory:
+                  type: string
+                  example: CATEGORY_B
+                activityDataTJ:
+                  type: number
+                  example: 3850.50
+                emissionFactorTco2PerTJ:
+                  type: number
+                  example: 56.10
+                biomassFraction:
+                  type: number
+                  example: 0.08
+                cemsMeasuredTonnage:
+                  type: number
+                  example: 214350.0
+      responses:
+        '200':
+          description: Verified fossil emission returns, biomass deductions, and EU Registry surrender obligations
+
+  /api/notifications/webhooks/test:
+    post:
+      summary: Dispatch Test Ping to Registered or Ad-Hoc Webhook Endpoint
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Optional ID of stored webhook configuration
+                  example: wh-001
+                url:
+                  type: string
+                  format: uri
+                  description: Optional destination URL for ad-hoc ping verification
+                  example: https://alert-receiver.internal.net/cems-ping
+      responses:
+        '200':
+          description: Webhook ping test dispatched with measured latency
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: SUCCESS
+                  deliveryStatus:
+                    type: string
+                    example: DELIVERED
+                  latencyMs:
+                    type: integer
+                    example: 24
+                  httpStatus:
+                    type: integer
+                    example: 200
+        '400':
+          description: Webhook ID not found or target URL missing
+        '401':
+          description: Unauthorized
+
+  /.well-known/openid-configuration:
+    get:
+      summary: OpenID Connect (OIDC) Discovery Document (RFC 8414)
+      description: Returns configuration metadata for OAuth 2.0 / OIDC identity federation and SSO integration
+      responses:
+        '200':
+          description: OpenID Provider configuration metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issuer:
+                    type: string
+                    example: http://localhost:8089
+                  authorization_endpoint:
+                    type: string
+                  token_endpoint:
+                    type: string
+                  userinfo_endpoint:
+                    type: string
+                  sso_login_endpoint:
+                    type: string
+                  sso_callback_endpoint:
+                    type: string
+                  jwks_uri:
+                    type: string
+                  response_types_supported:
+                    type: array
+                    items:
+                      type: string
+                  subject_types_supported:
+                    type: array
+                    items:
+                      type: string
+                  id_token_signing_alg_values_supported:
+                    type: array
+                    items:
+                      type: string
+                  scopes_supported:
+                    type: array
+                    items:
+                      type: string
+                  sso_providers_supported:
+                    type: array
+                    items:
+                      type: string
+
+  /api/auth/mfa/validate:
+    post:
+      summary: Validate Time-Based One-Time Password (RFC 6238 TOTP)
+      description: Performs zero-trust step-up authorization check for sensitive industrial control commands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: elena.vance@climatesphere.internal
+                code:
+                  type: string
+                  example: "492018"
+                secret:
+                  type: string
+                  description: Optional base32 TOTP secret for standalone validation
+      responses:
+        '200':
+          description: MFA token validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: true
+                  email:
+                    type: string
+
+  /api/ai/rag/vector-status:
+    get:
+      summary: Get PostgreSQL pgvector HNSW Regulatory Vector Database Status
+      description: Returns indexing status, dimensions, and similarity metric for statutory text embedding engine
+      responses:
+        '200':
+          description: Vector index status and configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: PGVECTOR_READY
+                  extension:
+                    type: string
+                    example: vector (HNSW Index)
+                  metric:
+                    type: string
+                    example: cosine_distance
+                  dimensions:
+                    type: integer
+                    example: 384
+                  totalIndexedDocuments:
+                    type: integer
+                    example: 22
+                  frameworksIndexed:
+                    type: integer
+                    example: 13
+                  hnswParameters:
+                    type: object
+                    properties:
+                      m:
+                        type: integer
+                      ef_construction:
+                        type: integer
+
+  /api/ai/rag/query:
+    post:
+      summary: Query Scaled Regulatory RAG Engine with Semantic Embeddings
+      description: Retrieves matching legal clauses and statutory standards across IED, 13./17. BImSchV, EPA Part 75, and CBAM
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query:
+                  type: string
+                  example: SO2 limit coal plant
+                topK:
+                  type: integer
+                  default: 3
+                  example: 3
+                framework:
+                  type: string
+                  description: Optional framework filter (e.g., IED, EPA, DIN EN 14181)
+                  example: DIN EN 14181
+      responses:
+        '200':
+          description: Semantically ranked regulatory snippets and similarity scores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  query:
+                    type: string
+                  topK:
+                    type: integer
+                  resultsCount:
+                    type: integer
+                  matches:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        framework:
+                          type: string
+                        title:
+                          type: string
+                        snippet:
+                          type: string
+                        score:
+                          type: number
+
+  /api/ai/local/models:
+    get:
+      summary: List Air-Gapped On-Premises Edge LLM Models
+      description: Returns locally hosted quantized LLM instances available for classified zero-exfiltration plant control
+      responses:
+        '200':
+          description: Registered local edge models
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: LOCAL_EDGE_ENGINE_ONLINE
+                  airGapped:
+                    type: boolean
+                    example: true
+                  defaultModel:
+                    type: string
+                    example: llama3:8b-instruct-cems
+                  availableModels:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        parameters:
+                          type: string
+                        quantization:
+                          type: string
+                        contextTokens:
+                          type: integer
+
+  /api/ai/local/query:
+    post:
+      summary: Execute Air-Gapped Local Edge LLM Inference
+      description: Dispatches deterministic inference query to on-premise edge neural engine without external egress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                  example: Analyze flue gas desulfurization performance under peak load
+                model:
+                  type: string
+                  default: llama3:8b-instruct-cems
+                  example: llama3:8b-instruct-cems
+                facilityId:
+                  type: string
+                  default: DU-03
+                  example: DU-03
+      responses:
+        '200':
+          description: Deterministic localized inference response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: SUCCESS
+                  airGapped:
+                    type: boolean
+                    example: true
+                  model:
+                    type: string
+                  prompt:
+                    type: string
+                  response:
+                    type: string
+                  tokensGenerated:
+                    type: integer
+                  inferenceLatencyMs:
+                    type: integer
+
+  /api/admin/reports/schedules:
+    get:
+      summary: List Headless Scheduled Compliance Report Jobs
+      description: Retrieves configured cron-driven statutory report schedules and distribution rosters
+      responses:
+        '200':
+          description: List of scheduled compliance reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    cron:
+                      type: string
+                    format:
+                      type: string
+                    recipients:
+                      type: array
+                      items:
+                        type: string
+                    active:
+                      type: boolean
+
+  /api/admin/reports/schedules/create:
+    post:
+      summary: Create Headless Automated Compliance Report Schedule
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, cron, format]
+              properties:
+                name:
+                  type: string
+                  example: Monthly LANUV NRW Statutory Submission
+                cron:
+                  type: string
+                  example: 0 0 1 * *
+                format:
+                  type: string
+                  enum: [PDF, XML, CSV, EXCEL]
+                  example: XML
+                recipients:
+                  type: array
+                  items:
+                    type: string
+                  example: [compliance@plant.de, lanuv@nrw.de]
+                facilityId:
+                  type: string
+                  example: DU-03
+      responses:
+        '201':
+          description: Compliance report schedule created successfully
+        '400':
+          description: Invalid cron expression or missing required parameters
+        '401':
+          description: Unauthorized
+
+  /api/admin/reports/dispatch-now:
+    post:
+      summary: Trigger Immediate Headless Compliance Report Dispatch
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scheduleId]
+              properties:
+                scheduleId:
+                  type: string
+                  example: sched-01
+                targetRecipient:
+                  type: string
+                  format: email
+                  example: auditor@tuev-rheinland.de
+      responses:
+        '200':
+          description: Report generated, cryptographically signed, and dispatched
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: DISPATCHED
+                  proof:
+                    type: object
+                    properties:
+                      dispatchId:
+                        type: string
+                      sha256Digest:
+                        type: string
+                      timestamp:
+                        type: string
+
+  /api/compliance/qal2/calculate:
+    post:
+      summary: Calculate DIN EN 14181 QAL2 Calibration Function & Variability Test
+      description: Computes linear regression calibration function and tests standard deviation of differences against statutory kv uncertainty limits
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [runs]
+              properties:
+                pollutant:
+                  type: string
+                  example: SO2
+                elv:
+                  type: number
+                  example: 500.0
+                runs:
+                  type: array
+                  description: Minimum 5 paired runs of AMS (Automated Measuring System) and SRM (Standard Reference Method)
+                  items:
+                    type: object
+                    required: [run, ams, srm]
+                    properties:
+                      run:
+                        type: integer
+                      ams:
+                        type: number
+                      srm:
+                        type: number
+      responses:
+        '200':
+          description: QAL2 linear regression parameters, variability test results, and certification status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pollutant:
+                    type: string
+                  runCount:
+                    type: integer
+                  elv:
+                    type: number
+                  meanAms:
+                    type: number
+                  meanSrm:
+                    type: number
+                  linearRegression:
+                    type: object
+                    properties:
+                      slope:
+                        type: number
+                      intercept:
+                        type: number
+                      calibrationFunction:
+                        type: string
+                  variabilityTest:
+                    type: object
+                    properties:
+                      standardDeviationOfDifferences_sD:
+                        type: number
+                      kvFactor:
+                        type: number
+                      sigma0:
+                        type: number
+                      variabilityCriterion:
+                        type: number
+                      pass:
+                        type: boolean
+                  certificationStatus:
+                    type: string
+                    example: QAL2_CERTIFIED_PASS
+        '400':
+          description: Fewer than 5 paired runs provided or invalid input parameters
+
+  /api/telemetry/annotations:
+    get:
+      summary: Retrieve Operator Shift Handover Annotations (IED Art. 30)
+      parameters:
+        - name: facilityId
+          in: query
+          schema:
+            type: string
+          example: DU-03
+      responses:
+        '200':
+          description: List of operator shift annotations with cryptographic hashes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    timestamp:
+                      type: string
+                    facilityId:
+                      type: string
+                    excuseCode:
+                      type: string
+                    title:
+                      type: string
+                    notes:
+                      type: string
+                    operator:
+                      type: string
+                    shiftRole:
+                      type: string
+                    merkleHash:
+                      type: string
+    post:
+      summary: Record Operator Shift Annotation and Legal Event Tag
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [facilityId, excuseCode, title]
+              properties:
+                facilityId:
+                  type: string
+                  example: DU-03
+                excuseCode:
+                  type: string
+                  enum: [SOOT_BLOWING, IED_ART30_STARTUP, IED_ART30_SHUTDOWN, SENSOR_CALIBRATION, LOAD_RAMP, EMERGENCY_TRIP]
+                  example: SOOT_BLOWING
+                title:
+                  type: string
+                  example: Economizer Soot Blow Cycle
+                notes:
+                  type: string
+                  example: Executed steam soot blow sequence per standard operating procedures.
+                shiftRole:
+                  type: string
+                  example: SHIFT_SUPERVISOR
+      responses:
+        '201':
+          description: Annotation committed to immutable audit log and TimescaleDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ANNOTATION_RECORDED
+                  annotation:
+                    type: object
+        '400':
+          description: Invalid request parameters
+        '401':
+          description: Unauthorized
+
+
+

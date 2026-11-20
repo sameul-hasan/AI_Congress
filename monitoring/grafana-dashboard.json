@@ -1,0 +1,103 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "title": "ClimateSphere AI — Enterprise CEMS Telemetry & Statutory Compliance",
+  "tags": ["cems", "en14181", "ied", "decarbonization", "climatesphere"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "type": "stat",
+      "title": "Total Telemetry Ingested (1 Hz)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "climatesphere_telemetry_packets_total", "legendFormat": "Packets" }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "type": "stat",
+      "title": "Active WebSocket Streams",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "climatesphere_ws_active_clients", "legendFormat": "Clients" }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "type": "stat",
+      "title": "Total ELV Exceedance Events",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "climatesphere_elv_exceedance_events_total", "legendFormat": "Breaches" }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 4,
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "type": "stat",
+      "title": "Fieldbus Polling Operations",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "climatesphere_fieldbus_polls_total", "legendFormat": "Polls" }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 5,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "type": "timeseries",
+      "title": "CEMS Physical Ingestion Rate (Packets/Sec)",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "rate(climatesphere_telemetry_packets_total[1m])", "legendFormat": "Ingestion Rate (Hz)" }
+      ]
+    },
+    {
+      "id": 6,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "type": "timeseries",
+      "title": "Fieldbus Register Read Throughput",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "rate(climatesphere_fieldbus_polls_total[1m])", "legendFormat": "Modbus/OPC-UA Polls/sec" }
+      ]
+    }
+  ]
+}
